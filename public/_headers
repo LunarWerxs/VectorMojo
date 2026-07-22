@@ -1,0 +1,11 @@
+# Cloudflare Pages headers (ignored by GitHub Pages, which is fine).
+# Long-cache the hashed build assets.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# NOTE: when threaded WASM engines land (Ghostscript for EPS), uncomment to
+# enable SharedArrayBuffer. This works on Cloudflare Pages but NOT GitHub Pages
+# (which cannot set headers — you'd need a coi-serviceworker shim there).
+# /*
+#   Cross-Origin-Opener-Policy: same-origin
+#   Cross-Origin-Embedder-Policy: require-corp

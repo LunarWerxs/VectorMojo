@@ -1,0 +1,13 @@
+node_modules
+dist
+*.tsbuildinfo
+*.local
+.DS_Store
+.vscode
+
+# dev probe/scratch outputs
+tools/out-*.svg
+
+# local-only sample assets (don't commit third-party/brand files)
+public/samples/
+.claude/codemap/
