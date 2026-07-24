@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { detect, type Detected } from './lib/detect'
 import { converterFor, type ToSvgResult } from './lib/registry'
 import {
@@ -37,12 +37,44 @@ interface Item {
 const items = ref<Item[]>([])
 const dragging = ref(false)
 const pngScale = ref(2)
+const helpDialog = ref<HTMLDialogElement | null>(null)
 const brandMarkUrl = `${import.meta.env.BASE_URL}vectormojo-mark.svg`
 const noticesUrl = `${import.meta.env.BASE_URL}THIRD_PARTY_NOTICES.txt`
-const sourceUrl = 'https://github.com/Lunarwerx/vectormojo'
+const sourceUrl = 'https://github.com/LunarWerxs/vectormojo'
+const helpSeenKey = 'vectormojo:help-seen:v1'
 let seq = 0
 
 const baseName = (n: string) => n.replace(/\.[^.]+$/, '')
+
+function openHelp() {
+  if (!helpDialog.value?.open) helpDialog.value?.showModal()
+}
+
+function rememberHelpSeen() {
+  try {
+    localStorage.setItem(helpSeenKey, 'yes')
+  } catch {
+    // Storage can be unavailable in strict privacy modes; the dialog still works.
+  }
+}
+
+function closeHelp() {
+  rememberHelpSeen()
+  helpDialog.value?.close()
+}
+
+async function trySampleFromHelp() {
+  closeHelp()
+  await trySample()
+}
+
+onMounted(() => {
+  try {
+    if (localStorage.getItem(helpSeenKey) !== 'yes') openHelp()
+  } catch {
+    openHelp()
+  }
+})
 
 function applyResult(item: Item, result: ToSvgResult) {
   item.svg = optimizeSvg(result.svg)
@@ -219,22 +251,45 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
   <div class="min-h-full bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
     <div class="mx-auto max-w-5xl px-5 py-10">
       <header class="mb-8">
-        <div class="flex items-center gap-3">
-          <img :src="brandMarkUrl" alt="" class="h-10 w-10" />
-          <div>
-            <h1 class="text-2xl font-semibold tracking-tight">
-              Vector<span class="bg-gradient-to-r from-indigo-500 to-fuchsia-500 bg-clip-text text-transparent">Mojo</span>
-            </h1>
-            <p class="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
-              Design files → clean SVG, entirely in your browser. Nothing is uploaded.
-            </p>
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <img :src="brandMarkUrl" alt="" class="h-10 w-10" />
+            <div>
+              <h1 class="text-2xl font-semibold tracking-tight">
+                Vector<span class="bg-gradient-to-r from-indigo-500 to-fuchsia-500 bg-clip-text text-transparent">Mojo</span>
+              </h1>
+              <p class="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
+                The file stays with you. The useful version comes out.
+              </p>
+            </div>
           </div>
+          <button
+            type="button"
+            class="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 shadow-sm hover:border-indigo-400 hover:text-indigo-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300"
+            @click="openHelp"
+          >
+            What can I do here?
+          </button>
         </div>
       </header>
 
+      <section class="mb-6 max-w-3xl">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500">
+          Design file in. Useful asset out.
+        </p>
+        <h2 class="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Turn the file you have into the vector you need.
+        </h2>
+        <p class="mt-3 text-base leading-7 text-neutral-600 dark:text-neutral-300">
+          Drop in a Photoshop, PDF, Illustrator, EPS, SVG, PNG, or JPEG file.
+          VectorMojo opens it in your browser, turns it into SVG, and lets you
+          download SVG, PNG, or PDF—or copy the SVG straight into your project.
+        </p>
+      </section>
+
       <!-- Drop zone -->
       <label
-        class="block cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition"
+        class="block cursor-pointer rounded-2xl border-2 border-dashed bg-white p-10 text-center shadow-sm transition dark:bg-neutral-900"
         :class="
           dragging
             ? 'border-indigo-500 bg-indigo-500/5'
@@ -245,9 +300,9 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
         @drop.prevent="onDrop"
       >
         <input type="file" class="hidden" multiple @change="onPick" />
-        <div class="text-sm">
-          <span class="font-medium">Drop files</span>
-          <span class="text-neutral-500 dark:text-neutral-400"> or click to browse</span>
+        <div class="text-base">
+          <span class="font-semibold">Drop a design file here</span>
+          <span class="text-neutral-500 dark:text-neutral-400"> or click to choose one</span>
         </div>
         <div class="mt-2 text-xs text-neutral-400">
           PSD · PDF · AI · EPS · SVG · approximate PNG/JPG tracing
@@ -257,9 +312,30 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
           class="mt-4 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
           @click.prevent="trySample"
         >
-          Try a sample PSD
+          No file handy? Try the sample
         </button>
       </label>
+
+      <section class="mt-4 grid gap-3 sm:grid-cols-3" aria-label="Common uses">
+        <article class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <p class="text-sm font-semibold">Rescue the vector</p>
+          <p class="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+            Pull editable shapes out of a PSD, PDF, modern AI, or EPS file.
+          </p>
+        </article>
+        <article class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <p class="text-sm font-semibold">Make it web-ready</p>
+          <p class="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+            Clean up an SVG, choose its precision, and copy the markup.
+          </p>
+        </article>
+        <article class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+          <p class="text-sm font-semibold">Export what you need</p>
+          <p class="mt-1 text-xs leading-5 text-neutral-500 dark:text-neutral-400">
+            Save the result as SVG, transparent PNG, white PNG, or PDF.
+          </p>
+        </article>
+      </section>
 
       <!-- PNG scale control -->
       <div v-if="doneCount" class="mt-4 flex items-center gap-2 text-xs text-neutral-500">
@@ -445,5 +521,94 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
         </a>
       </footer>
     </div>
+
+    <dialog
+      ref="helpDialog"
+      class="help-dialog w-[min(92vw,46rem)] rounded-2xl border border-neutral-200 bg-white p-0 text-neutral-900 shadow-2xl dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+      aria-labelledby="help-title"
+      @close="rememberHelpSeen"
+      @click.self="closeHelp"
+    >
+      <div class="p-6 sm:p-8">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500">
+              Your local conversion bench
+            </p>
+            <h2 id="help-title" class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              What can VectorMojo do for me?
+            </h2>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg p-2 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+            aria-label="Close help"
+            autofocus
+            @click="closeHelp"
+          >
+            ✕
+          </button>
+        </div>
+
+        <p class="mt-4 leading-7 text-neutral-600 dark:text-neutral-300">
+          VectorMojo takes artwork trapped in a design file and gives you a
+          practical SVG you can edit, ship, paste into a website, or export
+          again—without sending the original file to a server.
+        </p>
+
+        <ol class="mt-6 grid gap-3 sm:grid-cols-3">
+          <li class="rounded-xl bg-neutral-100 p-4 dark:bg-neutral-800">
+            <span class="text-xs font-semibold text-indigo-500">01 · Drop</span>
+            <p class="mt-2 text-sm leading-6">Choose one file or a whole batch.</p>
+          </li>
+          <li class="rounded-xl bg-neutral-100 p-4 dark:bg-neutral-800">
+            <span class="text-xs font-semibold text-indigo-500">02 · Convert</span>
+            <p class="mt-2 text-sm leading-6">Everything is read and converted in this tab.</p>
+          </li>
+          <li class="rounded-xl bg-neutral-100 p-4 dark:bg-neutral-800">
+            <span class="text-xs font-semibold text-indigo-500">03 · Take it</span>
+            <p class="mt-2 text-sm leading-6">Download SVG, PNG, PDF, or copy the SVG.</p>
+          </li>
+        </ol>
+
+        <div class="mt-6 grid gap-5 border-t border-neutral-200 pt-6 text-sm dark:border-neutral-700 sm:grid-cols-2">
+          <div>
+            <h3 class="font-semibold">Good at</h3>
+            <ul class="mt-2 space-y-1.5 text-neutral-600 dark:text-neutral-300">
+              <li>• Logos and shape layers from PSD/PSB</li>
+              <li>• Vector pages from PDF, modern AI, and EPS</li>
+              <li>• Cleaning and normalizing existing SVG</li>
+              <li>• Quick bitmap tracing when “close enough” works</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-semibold">Worth knowing</h3>
+            <ul class="mt-2 space-y-1.5 text-neutral-600 dark:text-neutral-300">
+              <li>• PNG/JPEG tracing is an approximation</li>
+              <li>• Older non-PDF Illustrator files are not supported</li>
+              <li>• Raster and text appearance may remain embedded pixels</li>
+              <li>• Nothing is uploaded or stored by VectorMojo</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="mt-7 flex flex-wrap gap-3">
+          <button
+            type="button"
+            class="rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-600"
+            @click="trySampleFromHelp"
+          >
+            Show me with the sample
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-semibold hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            @click="closeHelp"
+          >
+            Got it—let me drop a file
+          </button>
+        </div>
+      </div>
+    </dialog>
   </div>
 </template>

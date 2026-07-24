@@ -3,7 +3,7 @@ VectorMojo source
 
 The source code for this network-accessible application is available at:
 
-https://github.com/Lunarwerx/vectormojo
+https://github.com/LunarWerxs/vectormojo
 
 The repository includes the application source, build scripts, Bun lockfile,
 and reproducible neutral sample. To reproduce the browser bundle:

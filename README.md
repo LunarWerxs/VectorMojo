@@ -1,110 +1,153 @@
-# VectorMojo
+<div align="center">
 
-Convert design files to clean **SVG**, **100% in the browser**. Files never leave
-the machine, there is no backend, and the built site is a bag of static files you
-can drop on **Cloudflare Pages**, **GitHub Pages**, or any static host for free.
+<a href="https://vectormojo.pages.dev">
+  <img src="public/og.png" alt="VectorMojo — turn the file you have into the vector you need" width="880" />
+</a>
 
-## Why client-side
+<p>
+  <a href="https://vectormojo.pages.dev"><b>Open VectorMojo</b></a>
+  &nbsp;·&nbsp; <a href="#what-it-does">What it does</a>
+  &nbsp;·&nbsp; <a href="#what-goes-in">Formats</a>
+  &nbsp;·&nbsp; <a href="#run-it-yourself">Run locally</a>
+</p>
 
-- **Local compute.** All parsing/rendering runs as JS/WASM in the tab. Zero server
-  cost, and your artwork stays private.
-- **Free hosting.** A static bundle → Cloudflare Pages / GitHub Pages.
+<p>
+  <a href="https://vectormojo.pages.dev"><img alt="Live site" src="https://img.shields.io/badge/live-vectormojo.pages.dev-8b5cf6?style=flat-square" /></a>
+  <a href="https://github.com/LunarWerxs/vectormojo/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/LunarWerxs/vectormojo/ci.yml?branch=main&style=flat-square&label=CI" /></a>
+  <img alt="Runs locally in your browser" src="https://img.shields.io/badge/files-stay%20in%20your%20browser-06b6d4?style=flat-square" />
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" /></a>
+</p>
 
-## Format support
+</div>
 
-SVG is the hub: every input converts **to SVG**, then SVG exports to PNG/PDF/etc.
+---
 
-| Input | Engine | Status |
-| --- | --- | --- |
-| **PSD / PSB** | `ag-psd` (pure JS) | ✅ v1 |
-| PDF | `mupdf` (WASM) → SVG | ✅ v1.5 |
-| Illustrator `.ai` (modern = PDF) | `mupdf` (WASM) | ✅ v1.5 |
-| SVG (optimize/normalize) | `svgo` | ✅ v1.5 |
-| EPS / PostScript | Ghostscript (WASM) → PDF → MuPDF | ✅ v2 |
-| PNG / JPG → vector (approximate trace) | `ImageTracer.js` | ✅ v2 |
+Most of the time, you do not need Photoshop. You need the logo trapped inside
+the PSD. Or a clean SVG from a PDF somebody sent three years ago. Or a PNG you
+can turn into *something* editable before lunch.
 
-**Outputs:** SVG (v1), PNG via canvas (v1), PDF via lazy-loaded
-`svg2pdf.js` + `jsPDF` (v1.5).
+**VectorMojo is the escape hatch.** Drop in the awkward design file, let the
+browser pull out what it can, then take the result as SVG, PNG, PDF, or copied
+markup. There is no account, no upload step, and no server holding on to the
+original.
 
-MuPDF.js is loaded only for PDF/AI/EPS conversions. It is available under the
-AGPL-3.0-or-later or a commercial Artifex license. The Ghostscript WASM package
-used for EPS is AGPL-3.0. A public deployment must use license terms appropriate
-for the project. Runtime and development dependencies are summarized in
-`public/THIRD_PARTY_NOTICES.txt`.
+<p align="center">
+  <img src=".github/screenshots/conversion.png" alt="VectorMojo converting the bundled PSD sample into an SVG with export controls" width="880" />
+</p>
 
-### PSD fidelity
+## What it does
 
-Connections-style logos paint each letter with a **stroke gradient** (the vector
-_fill_ is disabled and left on a stale solid). ag-psd v31 exposes both the stroke
-(`vectorStroke.content`) and the fill (`vectorFill`). Because ag-psd gives geometry
-and the layer bounding box in absolute pixels, gradients are emitted as
-`userSpaceOnUse` with endpoints across the **layer bbox**, which is how Photoshop's
-"align with layer" maps them. That reproduces the correct shade with no
-objectBoundingBox skew (see `src/lib/psd-to-svg.ts`). Shape layers stay vector;
-raster, text, and smart-object layers are embedded as PNG images so their stored
-appearance is preserved without requiring local fonts.
-Photoshop `intersect` path operations are resolved to real vector geometry by a
-lazy-loaded clipping engine rather than approximated with SVG fill rules.
-Pattern fills are preserved as embedded PNG tiles inside SVG `<pattern>` elements.
-Bitmap and vector layer masks are preserved as SVG masks, including density and
-feather settings.
+- **Rescues vector artwork.** Pulls shape layers and paths out of PSD/PSB, PDF,
+  modern Illustrator, and EPS files.
+- **Makes SVGs easier to ship.** Opens, sanitizes, normalizes, rounds, prettifies,
+  or minifies the SVG you already have.
+- **Traces the bitmap when that is the only option.** PNG and JPEG tracing is
+  approximate, but it is often enough for a draft, icon, or starting point.
+- **Exports the useful version.** Download SVG, transparent or white-background
+  PNG, and PDF—or copy the SVG straight into a project.
+- **Handles the small annoying details.** Multi-page PDFs, background choice,
+  export precision, batch drops, masks, patterns, gradients, and transparent
+  previews are already accounted for.
 
-## Develop
+## Try it
 
-```bash
+Open **[vectormojo.pages.dev](https://vectormojo.pages.dev)** and drop a file.
+That is the whole setup.
+
+No suitable file nearby? Click **No file handy? Try the sample**. VectorMojo
+ships with a small, neutral PSD so you can see the complete conversion and
+export flow without handing it any of your own artwork.
+
+The **What can I do here?** button explains the workflow, the good fits, and the
+places where conversion is necessarily approximate:
+
+<p align="center">
+  <img src=".github/screenshots/how-it-works.png" alt="VectorMojo's in-app guide explaining drop, convert, and export" width="760" />
+</p>
+
+## What goes in
+
+| Input | What VectorMojo does |
+| --- | --- |
+| **PSD / PSB** | Keeps shape layers as vectors; preserves raster, text, and smart-object appearance as embedded pixels when needed |
+| **PDF** | Turns each selected page into real SVG geometry |
+| **Illustrator `.ai`** | Opens modern PDF-compatible AI files; older non-PDF AI files are not supported |
+| **EPS / PostScript** | Converts through local Ghostscript and MuPDF WebAssembly |
+| **SVG** | Removes executable content and cleans, normalizes, rounds, or minifies the markup |
+| **PNG / JPEG** | Runs a local approximate color trace into SVG paths |
+
+Everything lands in SVG first. From there, VectorMojo can export **SVG, PNG,
+PDF, or clipboard-ready SVG markup**.
+
+## Private by architecture
+
+There is no VectorMojo backend. File reading, parsing, tracing, rendering, and
+export all happen in the current browser tab with JavaScript and WebAssembly.
+Closing the tab closes the workbench; VectorMojo does not upload or store the
+files you give it.
+
+The production build is a collection of static files, which is why it can live
+on Cloudflare Pages without a database, upload bucket, or processing server.
+
+## A realistic note about fidelity
+
+Design formats are messy. A Photoshop file can mix true paths, pixels, fonts,
+smart objects, masks, patterns, and blend modes in the same layer stack.
+VectorMojo keeps vector geometry vector where the source exposes it, and embeds
+stored pixels where that is the honest way to preserve the appearance.
+
+That means a PSD can produce a very useful SVG without every object becoming a
+perfectly editable Bézier path. PNG/JPEG tracing is even more explicitly an
+approximation. The app shows warnings instead of pretending otherwise.
+
+The deeper implementation notes live in
+[`docs/PSD_FIDELITY.md`](docs/PSD_FIDELITY.md).
+
+## Run it yourself
+
+You need [Bun](https://bun.sh).
+
+```sh
+git clone https://github.com/LunarWerxs/vectormojo.git
+cd vectormojo
 bun install
-bun run dev        # http://127.0.0.1:5173
-bun run build      # -> dist/  (static)
-bun run preview
+bun run dev
 ```
 
-Click **Try a sample PSD** to load the bundled neutral vector artwork. Its source
-is generated by `bun run generate:sample`; other files placed in `public/samples/`
-remain git-ignored so local or brand assets cannot be committed accidentally.
-Because Vite publishes ignored files too, `bun run build` also verifies the
-sample's filename and SHA-256 content against a release allowlist. Keep private
-design files in the ignored `local-samples/` directory. The reusable vector brand
-mark is `public/vectormojo-mark.svg`.
+The useful checks:
 
-## Deploy
-
-**Cloudflare Pages** (recommended). Live at <https://vectormojo.pages.dev>. The
-no-CI path used here: build locally, then push the static output with wrangler:
-
-```bash
-bun run build
-bunx wrangler pages deploy dist --project-name vectormojo --branch main
+```sh
+bun test          # conversion + pixel-diff regression suite
+bun run build     # audited production bundle in dist/
+bun run preview   # serve that bundle locally
 ```
 
-(If you instead wire git-triggered CF builds, note the build image detects Bun
-from `bun.lockb` but may not from the newer text `bun.lock`; set a `BUN_VERSION`
-env var or deploy prebuilt as above.) The `public/_headers` file sets asset
-caching and documents how to enable `COOP/COEP` when threaded WASM (EPS) lands.
+The production build refuses to continue if anything other than the reviewed
+neutral PSD appears in `public/samples/`, even when that file is ignored by Git.
+Private scratch artwork belongs in the ignored `local-samples/` directory.
 
-**GitHub Pages:** publish `dist/`. `base` is already `./` (relative) so it works from
-a project subpath. Note GitHub Pages cannot set custom headers, so the threaded-WASM
-path (EPS) will need a `coi-serviceworker` shim there. Plain PSD/PDF/SVG are fine.
+## Built with
+
+**Bun** · **Vue 3** · **Vite** · **Tailwind CSS 4** · **ag-psd** · **MuPDF.js** ·
+**Ghostscript WASM** · **SVGO** · **ImageTracer.js** · **jsPDF**
+
+The converter registry is in [`src/lib/registry.ts`](src/lib/registry.ts);
+each format lazy-loads its own engine, so opening the page does not immediately
+pull down the large PDF or EPS runtimes.
 
 ## License
 
-VectorMojo's original source code is available under the [MIT License](LICENSE).
-That does not relicense third-party components. The distributed browser bundle
-includes MuPDF.js and Ghostscript WASM under the AGPL, so distributing or
-offering the combined application over a network must also satisfy their
-applicable terms unless commercial Artifex licenses are used. See
-[`public/THIRD_PARTY_NOTICES.txt`](public/THIRD_PARTY_NOTICES.txt) for details.
-Production builds include the full license texts under `dist/licenses/` and a
-corresponding-source pointer generated from [`public/SOURCE.txt`](public/SOURCE.txt).
+VectorMojo's original source is [MIT](LICENSE) © VectorMojo contributors. Do
+what you want with it.
 
-## Layout
+The browser bundle also includes MuPDF.js and Ghostscript WASM under the AGPL.
+Those components keep their own licenses; public builds include their full
+license texts and a corresponding-source pointer. See
+[`public/THIRD_PARTY_NOTICES.txt`](public/THIRD_PARTY_NOTICES.txt).
 
-```
-src/
-  lib/
-    psd-to-svg.ts   # PSD → SVG (ag-psd) + gradient fidelity   ← the interesting bit
-    detect.ts       # magic-byte format detection
-    registry.ts     # (format → to-SVG) converter map, SVG as hub
-    outputs.ts      # SVG tidy, SVG→PNG (canvas), SVG→PDF, download
-  App.vue           # drag-drop UI, preview, downloads
-tools/              # dev-only probes (not shipped)
-```
+<div align="center">
+  <br />
+  <a href="https://vectormojo.pages.dev"><img src="public/vectormojo-mark.svg" alt="VectorMojo" width="48" /></a>
+  <br /><br />
+  <sub>Built by <a href="https://lunarwerx.com"><b>LunarWerxs</b></a> · Deployed on Cloudflare Pages</sub>
+</div>

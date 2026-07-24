@@ -20,7 +20,7 @@ everything not yet done, roughly in priority order.
   may NOT from this repo's newer text `bun.lock`; if the build errors with
   `bun: command not found`, either set a `BUN_VERSION` build env var, add an
   `engines`/`.nvmrc`, or keep deploying prebuilt `dist/` as we do now.
-- [x] **Repo visibility.** Public at <https://github.com/Lunarwerx/vectormojo>
+- [x] **Repo visibility.** Public at <https://github.com/LunarWerxs/vectormojo>
   with MIT project licensing, a security policy, secret scanning, push
   protection, dependency alerts, automated fixes, and private vulnerability
   reporting enabled.
@@ -102,6 +102,12 @@ sets `supported: true` in `src/lib/detect.ts`, and lazy-loads its runtime.
 
 ## 6. Product / UX
 
+- [x] First-visit onboarding that explains useful jobs, the three-step workflow,
+  supported formats, and honest fidelity limits; the same guide stays available
+  from the persistent "What can I do here?" button.
+- [x] Portfolio-grade public presentation: human README copy, real product
+  screenshots, a LunarWerxs-style social/header card, Open Graph/X metadata,
+  and a dedicated PSD fidelity note outside the main README.
 - [x] Multi-page / multi-artboard handling for PDF-compatible PDF/AI files.
   Results expose a page selector and reuse the local source bytes when switching;
   no re-upload or server round trip is needed.
