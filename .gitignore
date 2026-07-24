@@ -1,5 +1,6 @@
 node_modules
 dist
+.wrangler/
 *.tsbuildinfo
 *.local
 .DS_Store
@@ -11,4 +12,8 @@ tools/out-*.svg
 # Keep local/brand samples out of git; only the generated neutral demo ships.
 public/samples/*
 !public/samples/vector-mojo-sample.psd
+
+# Private design files belong here, outside Vite's public/ publish tree.
+local-samples/
+
 .claude/codemap/

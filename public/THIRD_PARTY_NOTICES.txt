@@ -4,6 +4,9 @@ VectorMojo third-party software notices
 VectorMojo is built from open-source software. The following runtime components
 are included in or downloaded by the browser build:
 
+VectorMojo's original source code is licensed under the MIT License. That
+license does not replace or alter the licenses of the components below.
+
 - ag-psd — MIT License
   https://github.com/Agamnentzar/ag-psd
 - Vue.js — MIT License
