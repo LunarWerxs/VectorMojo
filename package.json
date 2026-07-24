@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite",
     "check:public": "bun run tools/check-public-assets.ts",
-    "build": "bun run check:public && vue-tsc --noEmit && vite build",
+    "build": "bun run check:public && vue-tsc --noEmit && vite build && bun run tools/copy-license-assets.ts",
     "preview": "vite preview",
     "test": "bun test",
     "generate:sample": "bun run tools/generate-sample.ts",

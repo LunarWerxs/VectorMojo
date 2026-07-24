@@ -35,5 +35,7 @@ Development and test tooling also includes resvg-js (MPL-2.0), pngjs (MIT),
 Vite (MIT), TypeScript (Apache-2.0), Tailwind CSS (MIT), and Bun (MIT).
 
 The notices above are summaries, not replacements for the license texts shipped
-with each dependency. Consult the linked projects and installed package license
-files for the complete terms.
+with each dependency. The deployed application includes the VectorMojo, MuPDF,
+and Ghostscript WASM license texts in the /licenses/ directory and a source-code
+pointer at /SOURCE.txt. Consult those files and the linked projects for the
+complete terms.

@@ -93,6 +93,8 @@ includes MuPDF.js and Ghostscript WASM under the AGPL, so distributing or
 offering the combined application over a network must also satisfy their
 applicable terms unless commercial Artifex licenses are used. See
 [`public/THIRD_PARTY_NOTICES.txt`](public/THIRD_PARTY_NOTICES.txt) for details.
+Production builds include the full license texts under `dist/licenses/` and a
+corresponding-source pointer generated from [`public/SOURCE.txt`](public/SOURCE.txt).
 
 ## Layout
 

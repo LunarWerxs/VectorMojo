@@ -1,0 +1,23 @@
+VectorMojo source
+=================
+
+The source code for this network-accessible application is available at:
+
+https://github.com/Lunarwerx/vectormojo
+
+The repository includes the application source, build scripts, Bun lockfile,
+and reproducible neutral sample. To reproduce the browser bundle:
+
+  bun install --frozen-lockfile
+  bun run build
+
+AGPL runtime components in the current lockfile:
+
+- MuPDF.js 1.28.0
+  Package source: https://github.com/ArtifexSoftware/mupdf.js
+  MuPDF source: https://github.com/ArtifexSoftware/mupdf
+- @jspawn/ghostscript-wasm 0.0.2
+  Package/build source: https://github.com/jsscheller/ghostscript-wasm
+  Ghostscript source: https://github.com/ArtifexSoftware/ghostpdl
+
+Full license texts are published with the application under /licenses/.

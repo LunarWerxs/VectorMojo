@@ -39,6 +39,7 @@ const dragging = ref(false)
 const pngScale = ref(2)
 const brandMarkUrl = `${import.meta.env.BASE_URL}vectormojo-mark.svg`
 const noticesUrl = `${import.meta.env.BASE_URL}THIRD_PARTY_NOTICES.txt`
+const sourceUrl = 'https://github.com/Lunarwerx/vectormojo'
 let seq = 0
 
 const baseName = (n: string) => n.replace(/\.[^.]+$/, '')
@@ -432,6 +433,15 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
           rel="noreferrer"
         >
           third-party notices
+        </a>
+        ·
+        <a
+          :href="sourceUrl"
+          class="underline decoration-neutral-600 underline-offset-2 hover:text-neutral-300"
+          target="_blank"
+          rel="noreferrer"
+        >
+          source code
         </a>
       </footer>
     </div>
