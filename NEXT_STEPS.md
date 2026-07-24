@@ -1,13 +1,15 @@
 # VectorMojo, next steps
 
-Status as of 2026-07-23: **v1 (PSD to SVG) is live** at
-<https://vectormojo.pages.dev>, deployed to Cloudflare Pages (Lunawerx account),
-source in this repo. The local worktree now implements the v2 roadmap below but
-has not been deployed. This file tracks everything not yet done, roughly in
-priority order.
+Status as of 2026-07-23: **v2 is live** at
+<https://vectormojo.pages.dev>, deployed to Cloudflare Pages from audited commit
+`575d6bd`. The source repository is public under MIT for VectorMojo's original
+code, with the AGPL runtime components disclosed separately. This file tracks
+everything not yet done, roughly in priority order.
 
 ## 1. Deploy / hosting polish
 
+- [x] **Public v2 deployment.** The production Pages deployment is built from
+  the pushed `main` commit and includes source, license, and third-party notices.
 - [ ] **Custom domain** (e.g. `vectormojo.lunarwerx.com`). Cloudflare dashboard
   to Pages to vectormojo to Custom domains. Needs a DNS record, so it is an
   owner action. ~5 min.
@@ -18,9 +20,10 @@ priority order.
   may NOT from this repo's newer text `bun.lock`; if the build errors with
   `bun: command not found`, either set a `BUN_VERSION` build env var, add an
   `engines`/`.nvmrc`, or keep deploying prebuilt `dist/` as we do now.
-- [ ] **Repo visibility.** Created **private** under `lunawerx`. Flip to public
-  when ready (`gh repo edit lunawerx/vectormojo --visibility public`), or from
-  the GitHub settings page.
+- [x] **Repo visibility.** Public at <https://github.com/Lunarwerx/vectormojo>
+  with MIT project licensing, a security policy, secret scanning, push
+  protection, dependency alerts, automated fixes, and private vulnerability
+  reporting enabled.
 
 ## 2. The bundled sample
 
@@ -80,6 +83,11 @@ sets `supported: true` in `src/lib/detect.ts`, and lazy-loads its runtime.
 
 ## 5. Engineering hardening
 
+- [x] **Public-release audit.** Full-history and staged-change secret scans are
+  clean; commit identities use GitHub noreply addresses. The generated neutral
+  PSD has no author/history/XMP metadata. Private design files live outside
+  Vite's `public/` tree, and every build pins the one approved public sample by
+  filename and SHA-256 before copying it to `dist/`.
 - [x] **Commit the regression gate as a real test.** `bun test` renders converted
   SVG through `resvg`, pixel-diffs vector and raster PSD fixtures, and asserts
   mean-difference and big-pixel thresholds. CI runs the test and production
