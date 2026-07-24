@@ -31,14 +31,12 @@ export function detect(bytes: ArrayBuffer, filename = ''): Detected {
       return {
         format: 'ai',
         label: 'Illustrator (AI)',
-        supported: false,
-        note: 'Modern (PDF-compatible) AI→SVG lands in v1.5 (mupdf-wasm).',
+        supported: true,
       }
     return {
       format: 'pdf',
       label: 'PDF',
-      supported: false,
-      note: 'PDF→SVG lands in v1.5 (mupdf-wasm).',
+      supported: true,
     }
   }
 
@@ -47,8 +45,7 @@ export function detect(bytes: ArrayBuffer, filename = ''): Detected {
     return {
       format: 'eps',
       label: 'EPS / PostScript',
-      supported: false,
-      note: 'EPS→SVG lands in v2 (Ghostscript-wasm).',
+      supported: true,
     }
 
   // Illustrator: modern .ai is a PDF; some start with the AI PGF prologue.
@@ -57,7 +54,7 @@ export function detect(bytes: ArrayBuffer, filename = ''): Detected {
       format: 'ai',
       label: 'Illustrator (AI)',
       supported: false,
-      note: 'Modern (PDF-compatible) AI→SVG lands in v1.5 (mupdf-wasm).',
+      note: 'Only modern PDF-compatible Illustrator files are supported.',
     }
 
   // SVG: look for "<svg" in the first chunk (may follow an XML/BOM preamble).
@@ -78,8 +75,7 @@ export function detect(bytes: ArrayBuffer, filename = ''): Detected {
     return {
       format: 'svg',
       label: 'SVG',
-      supported: false,
-      note: 'SVG optimize/normalize lands in v1.5.',
+      supported: true,
     }
 
   // PNG
@@ -87,8 +83,7 @@ export function detect(bytes: ArrayBuffer, filename = ''): Detected {
     return {
       format: 'png',
       label: 'PNG (raster)',
-      supported: false,
-      note: 'Raster→vector tracing lands in v2 (VTracer-wasm).',
+      supported: true,
     }
 
   // JPEG
@@ -96,8 +91,7 @@ export function detect(bytes: ArrayBuffer, filename = ''): Detected {
     return {
       format: 'jpg',
       label: 'JPEG (raster)',
-      supported: false,
-      note: 'Raster→vector tracing lands in v2 (VTracer-wasm).',
+      supported: true,
     }
 
   return { format: 'unknown', label: 'Unknown', supported: false }

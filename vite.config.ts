@@ -7,4 +7,12 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: './',
   plugins: [vue(), tailwindcss()],
+  // MuPDF's ESM wrapper initializes its WASM runtime with top-level await.
+  build: { target: 'esnext' },
+  optimizeDeps: {
+    // Pre-bundling rewrites mupdf-wasm.js's import.meta.url and makes the
+    // sibling .wasm request point at Vite's HTML fallback.
+    exclude: ['mupdf'],
+    esbuildOptions: { target: 'esnext' },
+  },
 })

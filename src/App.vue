@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { detect, type Detected } from './lib/detect'
-import { converterFor } from './lib/registry'
-import { optimizeSvg, svgToPng, download } from './lib/outputs'
+import { converterFor, type ToSvgResult } from './lib/registry'
+import {
+  download,
+  formatSvgForExport,
+  optimizeSvg,
+  svgToPdf,
+  svgToPng,
+  svgWithBackground,
+} from './lib/outputs'
 
 type Status = 'detecting' | 'converting' | 'done' | 'unsupported' | 'error'
 
@@ -16,14 +23,36 @@ interface Item {
   warnings: string[]
   error?: string
   layers?: number
+  summary?: string
+  pages?: number
+  page?: number
+  source?: ArrayBuffer
+  pageLoading?: boolean
+  transparentBackground: boolean
+  precision: number
+  minify: boolean
+  copied?: boolean
 }
 
 const items = ref<Item[]>([])
 const dragging = ref(false)
 const pngScale = ref(2)
+const brandMarkUrl = `${import.meta.env.BASE_URL}vectormojo-mark.svg`
+const noticesUrl = `${import.meta.env.BASE_URL}THIRD_PARTY_NOTICES.txt`
 let seq = 0
 
 const baseName = (n: string) => n.replace(/\.[^.]+$/, '')
+
+function applyResult(item: Item, result: ToSvgResult) {
+  item.svg = optimizeSvg(result.svg)
+  item.warnings = result.warnings
+  item.layers = result.meta.layers as number | undefined
+  item.pages = result.meta.pages as number | undefined
+  item.page = result.meta.page as number | undefined
+  item.summary =
+    (result.meta.summary as string | undefined) ??
+    (item.layers === undefined ? 'converted' : `${item.layers} shapes`)
+}
 
 async function addFiles(files: FileList | File[]) {
   for (const file of Array.from(files)) {
@@ -36,6 +65,9 @@ async function addFiles(files: FileList | File[]) {
       detected: { format: 'unknown', label: '…', supported: false },
       status: 'detecting',
       warnings: [],
+      transparentBackground: true,
+      precision: 2,
+      minify: true,
     })
     items.value.unshift(item)
     try {
@@ -48,14 +80,39 @@ async function addFiles(files: FileList | File[]) {
       }
       item.status = 'converting'
       const res = await conv(bytes)
-      item.svg = optimizeSvg(res.svg)
-      item.warnings = res.warnings
-      item.layers = res.meta.layers as number | undefined
+      applyResult(item, res)
+      if ((item.pages ?? 0) > 1) item.source = bytes
       item.status = 'done'
     } catch (err) {
       item.status = 'error'
       item.error = err instanceof Error ? err.message : String(err)
     }
+  }
+}
+
+async function changePage(item: Item, event: Event) {
+  const select = event.target as HTMLSelectElement
+  const requestedPage = Number(select.value)
+  if (
+    !item.source ||
+    !Number.isInteger(requestedPage) ||
+    requestedPage === item.page
+  ) {
+    return
+  }
+
+  const converter = converterFor(item.detected.format)
+  if (!converter) return
+  item.pageLoading = true
+  item.error = undefined
+  try {
+    applyResult(item, await converter(item.source, { page: requestedPage - 1 }))
+  } catch (err) {
+    select.value = String(item.page)
+    item.error =
+      'Page change failed: ' + (err instanceof Error ? err.message : String(err))
+  } finally {
+    item.pageLoading = false
   }
 }
 
@@ -72,26 +129,80 @@ function onPick(e: Event) {
 
 async function trySample() {
   try {
-    const res = await fetch('./samples/chat.psd')
+    const res = await fetch('./samples/vector-mojo-sample.psd')
     if (!res.ok) throw new Error(`sample not found (${res.status})`)
     const blob = await res.blob()
-    await addFiles([new File([blob], 'chat.psd')])
+    await addFiles([new File([blob], 'vector-mojo-sample.psd')])
   } catch (err) {
     alert('Sample unavailable: ' + (err instanceof Error ? err.message : err))
   }
 }
 
-function downloadSvg(item: Item) {
-  if (item.svg) download(item.svg, baseName(item.name) + '.svg')
+async function exportSvg(item: Item) {
+  if (!item.svg) throw new Error('No SVG is available to export.')
+  const artwork = item.transparentBackground ? item.svg : svgWithBackground(item.svg)
+  return formatSvgForExport(artwork, item.precision, item.minify)
+}
+
+async function downloadSvg(item: Item) {
+  try {
+    item.error = undefined
+    download(await exportSvg(item), baseName(item.name) + '.svg')
+  } catch (err) {
+    item.error = 'SVG export failed: ' + (err instanceof Error ? err.message : String(err))
+  }
 }
 
 async function downloadPng(item: Item) {
   if (!item.svg) return
   try {
-    const blob = await svgToPng(item.svg, pngScale.value)
+    item.error = undefined
+    const svg = await exportSvg(item)
+    const blob = await svgToPng(
+      svg,
+      pngScale.value,
+      item.transparentBackground ? undefined : '#ffffff',
+    )
     download(blob, baseName(item.name) + '.png', 'image/png')
   } catch (err) {
     item.error = 'PNG export failed: ' + (err instanceof Error ? err.message : String(err))
+  }
+}
+
+async function downloadPdf(item: Item) {
+  if (!item.svg) return
+  try {
+    item.error = undefined
+    const blob = await svgToPdf(await exportSvg(item))
+    download(blob, baseName(item.name) + '.pdf', 'application/pdf')
+  } catch (err) {
+    item.error = 'PDF export failed: ' + (err instanceof Error ? err.message : String(err))
+  }
+}
+
+async function copySvg(item: Item) {
+  try {
+    item.error = undefined
+    const svg = await exportSvg(item)
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(svg)
+    } else {
+      const textarea = document.createElement('textarea')
+      textarea.value = svg
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      const copied = document.execCommand('copy')
+      textarea.remove()
+      if (!copied) throw new Error('Clipboard access is unavailable.')
+    }
+    item.copied = true
+    setTimeout(() => {
+      item.copied = false
+    }, 1500)
+  } catch (err) {
+    item.error = 'Copy failed: ' + (err instanceof Error ? err.message : String(err))
   }
 }
 
@@ -107,12 +218,17 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
   <div class="min-h-full bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
     <div class="mx-auto max-w-5xl px-5 py-10">
       <header class="mb-8">
-        <h1 class="text-2xl font-semibold tracking-tight">
-          Vector<span class="text-indigo-500">Mojo</span>
-        </h1>
-        <p class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          Design files → clean SVG, entirely in your browser. Nothing is uploaded.
-        </p>
+        <div class="flex items-center gap-3">
+          <img :src="brandMarkUrl" alt="" class="h-10 w-10" />
+          <div>
+            <h1 class="text-2xl font-semibold tracking-tight">
+              Vector<span class="bg-gradient-to-r from-indigo-500 to-fuchsia-500 bg-clip-text text-transparent">Mojo</span>
+            </h1>
+            <p class="mt-0.5 text-sm text-neutral-500 dark:text-neutral-400">
+              Design files → clean SVG, entirely in your browser. Nothing is uploaded.
+            </p>
+          </div>
+        </div>
       </header>
 
       <!-- Drop zone -->
@@ -133,7 +249,7 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
           <span class="text-neutral-500 dark:text-neutral-400"> or click to browse</span>
         </div>
         <div class="mt-2 text-xs text-neutral-400">
-          PSD ready now · PDF · AI · EPS · SVG · PNG landing next
+          PSD · PDF · AI · EPS · SVG · approximate PNG/JPG tracing
         </div>
         <button
           type="button"
@@ -190,7 +306,7 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
                   {{ item.detected.label }}
                 </span>
                 <span v-if="item.status === 'done'" class="text-emerald-600 dark:text-emerald-400">
-                  ✓ {{ item.layers }} shapes → SVG
+                  ✓ {{ item.summary }} → SVG
                 </span>
                 <span v-else-if="item.status === 'converting'" class="text-indigo-500">
                   converting…
@@ -218,6 +334,54 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
                   ⚠ {{ w }}
                 </li>
               </ul>
+              <div
+                v-if="item.pages && item.pages > 1"
+                class="mt-2 flex items-center gap-2 text-xs text-neutral-500"
+              >
+                <label :for="`page-${item.id}`">Page</label>
+                <select
+                  :id="`page-${item.id}`"
+                  :value="item.page"
+                  :disabled="item.pageLoading"
+                  class="rounded border border-neutral-300 bg-transparent px-1.5 py-0.5 dark:border-neutral-700"
+                  @change="changePage(item, $event)"
+                >
+                  <option v-for="page in item.pages" :key="page" :value="page">
+                    {{ page }} of {{ item.pages }}
+                  </option>
+                </select>
+                <span v-if="item.pageLoading" class="text-indigo-500">rendering…</span>
+              </div>
+              <div
+                v-if="item.status === 'done'"
+                class="mt-3 flex flex-wrap items-center gap-3 text-xs text-neutral-500"
+              >
+                <label class="flex items-center gap-1.5">
+                  Background
+                  <select
+                    v-model="item.transparentBackground"
+                    class="rounded border border-neutral-300 bg-transparent px-1.5 py-0.5 dark:border-neutral-700"
+                  >
+                    <option :value="true">Transparent</option>
+                    <option :value="false">White</option>
+                  </select>
+                </label>
+                <label class="flex items-center gap-1.5">
+                  Precision
+                  <select
+                    v-model.number="item.precision"
+                    class="rounded border border-neutral-300 bg-transparent px-1.5 py-0.5 dark:border-neutral-700"
+                  >
+                    <option v-for="digits in [0, 1, 2, 3, 4]" :key="digits" :value="digits">
+                      {{ digits }} decimals
+                    </option>
+                  </select>
+                </label>
+                <label class="flex items-center gap-1.5">
+                  <input v-model="item.minify" type="checkbox" />
+                  Minify SVG
+                </label>
+              </div>
 
               <!-- Actions -->
               <div v-if="item.status === 'done'" class="mt-3 flex gap-2">
@@ -232,6 +396,18 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
                   @click="downloadPng(item)"
                 >
                   PNG {{ pngScale }}×
+                </button>
+                <button
+                  class="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  @click="downloadPdf(item)"
+                >
+                  Download PDF
+                </button>
+                <button
+                  class="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                  @click="copySvg(item)"
+                >
+                  {{ item.copied ? 'Copied!' : 'Copy SVG' }}
                 </button>
               </div>
             </div>
@@ -248,7 +424,15 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
       </ul>
 
       <footer class="mt-10 text-center text-xs text-neutral-400">
-        Runs 100% locally · static-hostable on Cloudflare / GitHub Pages
+        Runs 100% locally · static-hostable on Cloudflare / GitHub Pages ·
+        <a
+          :href="noticesUrl"
+          class="underline decoration-neutral-600 underline-offset-2 hover:text-neutral-300"
+          target="_blank"
+          rel="noreferrer"
+        >
+          third-party notices
+        </a>
       </footer>
     </div>
   </div>

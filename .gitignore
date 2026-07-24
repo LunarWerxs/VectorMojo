@@ -8,6 +8,7 @@ dist
 # dev probe/scratch outputs
 tools/out-*.svg
 
-# local-only sample assets (don't commit third-party/brand files)
-public/samples/
+# Keep local/brand samples out of git; only the generated neutral demo ships.
+public/samples/*
+!public/samples/vector-mojo-sample.psd
 .claude/codemap/

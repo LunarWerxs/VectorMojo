@@ -1,9 +1,10 @@
 # VectorMojo, next steps
 
-Status as of 2026-07-22: **v1 (PSD to SVG) is live** at
+Status as of 2026-07-23: **v1 (PSD to SVG) is live** at
 <https://vectormojo.pages.dev>, deployed to Cloudflare Pages (Lunawerx account),
-source in this repo. This file tracks everything not yet done, roughly in
-priority order. Nothing here is blocking; v1 works.
+source in this repo. The local worktree now implements the v2 roadmap below but
+has not been deployed. This file tracks everything not yet done, roughly in
+priority order.
 
 ## 1. Deploy / hosting polish
 
@@ -21,78 +22,86 @@ priority order. Nothing here is blocking; v1 works.
   when ready (`gh repo edit lunawerx/vectormojo --visibility public`), or from
   the GitHub settings page.
 
-## 2. The bundled sample (brand-IP note)
+## 2. The bundled sample
 
-The "Try a sample PSD" button loads `public/samples/chat.psd`. That folder is
-git-ignored (not in this repo), but the file IS in the deployed build, so a
-Connections logo PSD is currently public at
-<https://vectormojo.pages.dev/samples/chat.psd>.
+- [x] Replaced the Connections logo PSD with a generated, neutral shape-layer
+  sample at `public/samples/vector-mojo-sample.psd`. Its reproducible source is
+  `tools/generate-sample.ts`; other files in `public/samples/` stay git-ignored.
 
-- [ ] Decide: replace it with a **neutral, non-brand** sample PSD (best for a
-  public demo), or drop the sample button, or accept it (these are Lunarwerx/
-  Connections own assets). If replacing, drop the new file at
-  `public/samples/chat.psd` (or rename and update `trySample()` in
-  `src/App.vue`). The button already 404s gracefully if the file is absent.
-
-## 3. PSD fidelity, remaining gaps (v1 renders shape layers only)
+## 3. PSD fidelity, remaining gaps
 
 The converter warns in the UI when it hits these; it does not silently render
 them wrong. Worth closing when a real file needs them:
 
-- [ ] **Raster + text layers.** Currently skipped (counted as "skipped"). Options:
-  embed raster layers as `<image>` data URIs; render text layers as `<text>` (or
-  outline them). Text needs font handling, so raster-embed first.
-- [ ] **`intersect` path combine mode.** SVG fill rules cannot express "keep only
-  the overlap" of two subpaths; we approximate and warn. Real fix: compute the
-  boolean intersection of the subpaths (a path-clipping lib, e.g. a WASM build of
-  Clipper) at convert time.
-- [ ] **Blend modes with no CSS equivalent** (`pass through` on non-groups, any
-  future PS-only modes). We map the CSS-expressible ones and warn on the rest.
-- [ ] **Pattern fills.** Currently rendered transparent + warn. Emit an SVG
-  `<pattern>` from the PSD pattern data.
-- [ ] **Layer/vector masks (raster masks)** beyond clipping masks (which ARE
-  handled). A pixel mask would need rasterizing or converting to a clip path.
+- [x] **Raster + text layers.** Their stored layer pixels are embedded as PNG
+  `<image>` data URIs, preserving appearance without depending on local fonts.
+  Shape layers remain true vector paths.
+- [x] **`intersect` path combine mode.** Bézier paths are adaptively flattened
+  to sub-pixel precision and resolved through a lazy-loaded polygon clipping
+  engine; the result remains vector geometry in the SVG.
+- [x] **Blend modes with no CSS equivalent.** CSS-expressible modes are mapped;
+  unsupported modes, including `pass through` on non-groups, produce a warning
+  and safely fall back to normal.
+- [x] **Pattern fills.** Document pattern pixels are encoded as PNG tiles and
+  emitted as SVG `<pattern>` definitions, including the Photoshop phase offset.
+- [x] **Layer/vector masks.** Bitmap masks become luminance SVG masks (including
+  bounds, default color, density, and feather); vector masks on raster/text
+  artwork become vector SVG masks. Clipping masks remain supported separately.
 
 ## 4. Format roadmap (SVG is the hub; each is one lazy-loaded engine)
 
 ### v1.5
 
-- [ ] **PDF to SVG** via `mupdf` WASM (`drawPageAsSVG`). True vector out.
-- [ ] **Illustrator .ai to SVG.** Modern `.ai` is a PDF stream, so it reuses the
+- [x] **PDF to SVG** via `mupdf` WASM (`drawPageAsSVG`). True vector out, with a
+  local page selector for multi-page documents.
+- [x] **Illustrator .ai to SVG.** Modern `.ai` is a PDF stream, so it reuses the
   mupdf path (detection already routes `.ai` correctly). Legacy/non-PDF `.ai` is
   out of scope.
-- [ ] **SVG in (optimize / normalize)** via `svgo` (bundles for the browser;
+- [x] **SVG in (optimize / normalize)** via `svgo` (bundles for the browser;
   keep it lazy-loaded so it does not bloat the initial JS).
-- [ ] **SVG to PDF export** via `svg2pdf.js` (cheap once any PDF lib is present).
+- [x] **SVG to PDF export** via lazy-loaded `svg2pdf.js` + `jsPDF`. The export
+  keeps the SVG's dimensions and vector geometry; its renderer is fetched only
+  when the PDF download action is used.
 
 ### v2
 
-- [ ] **EPS / PostScript to SVG** via a Ghostscript WASM build. Heavy (~10 MB)
-  and may need `SharedArrayBuffer`, so lazy-load it and enable COOP/COEP (see
-  `public/_headers`; works on Cloudflare Pages, needs a `coi-serviceworker` shim
-  on GitHub Pages).
-- [ ] **Raster (PNG/JPG) to vector (trace).** `VTracer` (Rust to WASM, best color
-  tracing; would need building) or `ImageTracer.js` (pure JS, ships today).
-  This is approximate tracing, not exact conversion; label it as such in the UI.
+- [x] **EPS / PostScript to SVG** via the non-threaded
+  `@jspawn/ghostscript-wasm` build. Ghostscript converts EPS to an in-memory PDF,
+  then the existing MuPDF path preserves its vector geometry as SVG. The 16 MB
+  WASM asset is lazy-loaded; this build does not require `SharedArrayBuffer` or
+  COOP/COEP.
+- [x] **Raster (PNG/JPG) to vector (trace).** `ImageTracer.js` runs locally as a
+  lazy-loaded pure-JS engine. Results and warnings explicitly say the trace is
+  approximate; images above 2 MP are proportionally sampled for responsiveness
+  while the SVG retains the source dimensions.
 
-Each new engine: add a `converterFor(format)` entry in `src/lib/registry.ts`,
-flip `supported: true` in `src/lib/detect.ts`, lazy-`import()` the WASM.
+Each new engine has a `converterFor(format)` entry in `src/lib/registry.ts`,
+sets `supported: true` in `src/lib/detect.ts`, and lazy-loads its runtime.
 
 ## 5. Engineering hardening
 
-- [ ] **Commit the regression gate as a real test.** There is a pixel-diff
-  harness (renders SVG with `resvg`, diffs against `psd_tools` composites of the
-  7 Connections logo PSDs, asserts mean-diff and big-pixel thresholds). It lives
-  only in the scratch session right now. Port it into `tools/` + a `bun test`
-  script + a CI check so fidelity regressions are caught automatically.
-- [ ] **COOP/COEP headers** (`public/_headers`) are stubbed/commented; enable
-  when the first threaded WASM engine (EPS) lands.
-- [ ] **Bundle size.** 121 KB gzip today (ag-psd + Vue). Fine for now; if it
-  grows, code-split the converters (they already lazy-load conceptually).
+- [x] **Commit the regression gate as a real test.** `bun test` renders converted
+  SVG through `resvg`, pixel-diffs vector and raster PSD fixtures, and asserts
+  mean-difference and big-pixel thresholds. CI runs the test and production
+  build. The gate uses generated neutral fixtures instead of reintroducing the
+  seven branded scratch PSDs.
+- [x] **COOP/COEP review.** `public/_headers` keeps the directives documented
+  but deliberately disabled: every current engine is single-threaded, so
+  enabling cross-origin isolation would add compatibility cost without benefit.
+- [x] **Bundle size.** The initial app remains ~125 KB gzip. PDF, SVG normalize,
+  SVG→PDF, EPS, raster tracing, compression, and polygon clipping are emitted as
+  lazy chunks; the 10 MB MuPDF and 16 MB Ghostscript assets load only on demand.
 
 ## 6. Product / UX
 
-- [ ] Multi-page / multi-artboard handling (PDF, AI) once those land.
-- [ ] Per-conversion options (background transparency toggle, precision, minify).
-- [ ] A real logo/wordmark (the favicon is a placeholder "V" mark).
-- [ ] "Copy SVG to clipboard" alongside download.
+- [x] Multi-page / multi-artboard handling for PDF-compatible PDF/AI files.
+  Results expose a page selector and reuse the local source bytes when switching;
+  no re-upload or server round trip is needed.
+- [x] Per-conversion export options: transparent/white background, 0–4 decimal
+  precision, and compact/pretty SVG formatting. The selected settings feed SVG,
+  PNG, and PDF downloads from that result.
+- [x] A real vector logo/wordmark system. The Bézier-node "V" + spark mark lives
+  in `public/vectormojo-mark.svg`, drives the favicon, and pairs with the
+  gradient wordmark in the app header.
+- [x] "Copy SVG to clipboard" alongside download, using the same background,
+  precision, and minify settings as the exported file.

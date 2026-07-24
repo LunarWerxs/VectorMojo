@@ -11,17 +11,49 @@ export interface ToSvgResult {
   meta: Record<string, unknown>
 }
 
-export type ToSvgConverter = (bytes: ArrayBuffer) => Promise<ToSvgResult>
+export interface ToSvgOptions {
+  /** Zero-based page number for paged document formats. */
+  page?: number
+}
+
+export type ToSvgConverter = (
+  bytes: ArrayBuffer,
+  options?: ToSvgOptions,
+) => Promise<ToSvgResult>
 
 const converters: Partial<Record<Format, ToSvgConverter>> = {
   psd: async (bytes) => {
-    const r = psdToSvg(bytes)
-    return { svg: r.svg, warnings: r.warnings, meta: r.meta }
+    const r = await psdToSvg(bytes)
+    return {
+      svg: r.svg,
+      warnings: r.warnings,
+      meta: { ...r.meta, summary: `${r.meta.layers} shapes` },
+    }
   },
-  // v1.5: pdf, ai  -> mupdf-wasm (drawPageAsSVG)
-  // v1.5: svg      -> svgo normalize/optimize
-  // v2:   eps      -> ghostscript-wasm
-  // v2:   png/jpg  -> vtracer-wasm (raster trace)
+  pdf: async (bytes, options) => {
+    const { pdfToSvg } = await import('./pdf-to-svg')
+    return pdfToSvg(bytes, options?.page)
+  },
+  ai: async (bytes, options) => {
+    const { pdfToSvg } = await import('./pdf-to-svg')
+    return pdfToSvg(bytes, options?.page)
+  },
+  svg: async (bytes) => {
+    const { normalizeSvg } = await import('./svg-to-svg')
+    return normalizeSvg(bytes)
+  },
+  eps: async (bytes) => {
+    const { epsToSvg } = await import('./eps-to-svg')
+    return epsToSvg(bytes)
+  },
+  png: async (bytes) => {
+    const { rasterToSvg } = await import('./raster-to-svg')
+    return rasterToSvg(bytes)
+  },
+  jpg: async (bytes) => {
+    const { rasterToSvg } = await import('./raster-to-svg')
+    return rasterToSvg(bytes)
+  },
 }
 
 export function converterFor(format: Format): ToSvgConverter | undefined {

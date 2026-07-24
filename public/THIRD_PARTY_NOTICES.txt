@@ -1,0 +1,36 @@
+VectorMojo third-party software notices
+========================================
+
+VectorMojo is built from open-source software. The following runtime components
+are included in or downloaded by the browser build:
+
+- ag-psd — MIT License
+  https://github.com/Agamnentzar/ag-psd
+- Vue.js — MIT License
+  https://github.com/vuejs/core
+- pako — MIT License
+  https://github.com/nodeca/pako
+- polygon-clipping — MIT License
+  https://github.com/mfogel/polygon-clipping
+- SVGO — MIT License
+  https://github.com/svg/svgo
+- jsPDF — MIT License
+  https://github.com/parallax/jsPDF
+- svg2pdf.js — MIT License
+  https://github.com/yWorks/svg2pdf.js
+- ImageTracer.js — The Unlicense / public domain dedication
+  https://github.com/jankovicsandras/imagetracerjs
+- MuPDF.js — GNU Affero General Public License v3.0 or later, with commercial
+  licensing available from Artifex
+  https://mupdf.com/releases
+- @jspawn/ghostscript-wasm / Ghostscript — GNU Affero General Public License
+  v3.0, with commercial Ghostscript licensing available from Artifex
+  https://github.com/jsscheller/ghostscript-wasm
+  https://ghostscript.com/licensing/
+
+Development and test tooling also includes resvg-js (MPL-2.0), pngjs (MIT),
+Vite (MIT), TypeScript (Apache-2.0), Tailwind CSS (MIT), and Bun (MIT).
+
+The notices above are summaries, not replacements for the license texts shipped
+with each dependency. Consult the linked projects and installed package license
+files for the complete terms.
