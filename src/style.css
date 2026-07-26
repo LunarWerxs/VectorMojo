@@ -2,6 +2,24 @@
 
 :root {
   color-scheme: light dark;
+  --cnct-dialog-surface: #ffffff;
+  --cnct-dialog-text: #171717;
+  --cnct-dialog-muted: #525252;
+  --cnct-dialog-accent: #171717;
+  --cnct-dialog-accent-contrast: #ffffff;
+  --cnct-dialog-border: #e5e5e5;
+  --cnct-dialog-backdrop: rgb(10 10 10 / 0.72);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cnct-dialog-surface: #171717;
+    --cnct-dialog-text: #f5f5f5;
+    --cnct-dialog-muted: #a3a3a3;
+    --cnct-dialog-accent: #f5f5f5;
+    --cnct-dialog-accent-contrast: #171717;
+    --cnct-dialog-border: #404040;
+  }
 }
 
 html,
