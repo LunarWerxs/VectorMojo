@@ -1,10 +1,9 @@
 # Connections integration
 
-VectorMojo is a static browser application. It pilots `@cnct/connect`
-1.3.0-beta.3's SDK-owned sign-in dialog from the checked-in package under
-`vendor/`. It keeps authorization inside the dialog's cross-origin
-Connections-owned iframe rather than opening a browser popup or adding a
-backend/application-owned callback route:
+VectorMojo is a static browser application. It uses `@cnct/connect` 1.3.0's
+SDK-owned sign-in dialog from the public npm registry. It keeps authorization
+inside the dialog's cross-origin Connections-owned iframe rather than opening a
+browser popup or adding a backend/application-owned callback route:
 
 1. `createConnect` identifies VectorMojo with its public OAuth `client_id`.
 2. `signInDialog({ appName: "VectorMojo" })` injects the Connections handoff
@@ -16,10 +15,6 @@ backend/application-owned callback route:
    conversions. Artwork is never sent to Connections.
 5. Sign-out revokes the Connections grant as well as clearing the local
    session.
-
-The prerelease tarball is temporary pilot packaging, not a fork of the SDK. Once
-the dialog is approved, replace it with the stable registry version and remove
-`vendor/cnct-connect-1.3.0-beta.3.tgz`.
 
 The `client_id` in `src/lib/connections.ts` is public by OAuth design. The
 developer API key used once to create and manage that registration is a secret
