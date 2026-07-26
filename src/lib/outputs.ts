@@ -16,20 +16,45 @@ export function optimizeSvg(svg: string): string {
 // Chromium caps canvases around ~268 megapixels; beyond it drawImage silently
 // no-ops and toBlob "succeeds" with a blank PNG. Refuse loudly instead.
 const MAX_CANVAS_AREA = 240_000_000
+const MAX_CANVAS_DIMENSION = 32_767
 
-/** Rasterize an SVG string to a PNG Blob at a given pixel scale. */
+export interface PngDimensions {
+  width: number
+  height: number
+}
+
+export function pngDimensionsFromSvg(svg: string, initialScale = 2): PngDimensions {
+  const source = svgSize(svg)
+  return {
+    width: Math.max(1, Math.round(source.width * initialScale)),
+    height: Math.max(1, Math.round(source.height * initialScale)),
+  }
+}
+
+function validPngDimension(value: number): number {
+  if (!Number.isFinite(value) || value < 1) {
+    throw new Error('PNG width and height must be positive pixel values.')
+  }
+  return Math.round(value)
+}
+
+/** Rasterize an SVG string to a PNG Blob at explicit output dimensions. */
 export async function svgToPng(
   svg: string,
-  scale = 1,
+  dimensions: PngDimensions,
   background?: string,
 ): Promise<Blob> {
-  const { width, height } = svgSize(svg)
-  const area = Math.round(width * scale) * Math.round(height * scale)
-  if (area > MAX_CANVAS_AREA) {
-    const maxScale = Math.floor(Math.sqrt(MAX_CANVAS_AREA / (width * height)) * 10) / 10
+  const width = validPngDimension(dimensions.width)
+  const height = validPngDimension(dimensions.height)
+  const area = width * height
+  if (
+    width > MAX_CANVAS_DIMENSION ||
+    height > MAX_CANVAS_DIMENSION ||
+    area > MAX_CANVAS_AREA
+  ) {
     throw new Error(
-      `PNG at ${scale}× would be ${Math.round(width * scale)}×${Math.round(height * scale)} ` +
-        `(over the browser canvas limit). Try ${Math.max(1, maxScale)}× or lower.`,
+      `PNG dimensions ${width}×${height} exceed the browser canvas limit. ` +
+        'Use smaller width and height values.',
     )
   }
   const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
@@ -42,8 +67,8 @@ export async function svgToPng(
       img.src = url
     })
     const canvas = document.createElement('canvas')
-    canvas.width = Math.max(1, Math.round(width * scale))
-    canvas.height = Math.max(1, Math.round(height * scale))
+    canvas.width = width
+    canvas.height = height
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('2D canvas unavailable')
     if (background) {

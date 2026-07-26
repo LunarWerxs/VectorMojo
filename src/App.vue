@@ -1,11 +1,22 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import {
+  connections,
+  type ConnectUser,
+} from './lib/connections'
 import { detect, type Detected } from './lib/detect'
+import {
+  GUEST_CONVERSION_LIMIT,
+  guestConversionsRemaining,
+  readGuestConversionCount,
+  recordGuestConversion,
+} from './lib/guest-usage'
 import { converterFor, type ToSvgResult } from './lib/registry'
 import {
   download,
   formatSvgForExport,
   optimizeSvg,
+  pngDimensionsFromSvg,
   svgToPdf,
   svgToPng,
   svgWithBackground,
@@ -31,18 +42,28 @@ interface Item {
   transparentBackground: boolean
   precision: number
   minify: boolean
+  pngWidth: number
+  pngHeight: number
+  pngAspectRatio: number
+  lockPngAspect: boolean
   copied?: boolean
 }
 
 const items = ref<Item[]>([])
 const dragging = ref(false)
-const pngScale = ref(2)
 const helpDialog = ref<HTMLDialogElement | null>(null)
+const accountDialog = ref<HTMLDialogElement | null>(null)
+const connectionsUser = ref<ConnectUser | null>(null)
+const connectionsBusy = ref(false)
+const connectionsError = ref('')
+const guestConversionCount = ref(readGuestConversionCount())
+const pendingFiles = ref<File[]>([])
 const brandMarkUrl = `${import.meta.env.BASE_URL}vectormojo-mark.svg`
 const noticesUrl = `${import.meta.env.BASE_URL}THIRD_PARTY_NOTICES.txt`
 const sourceUrl = 'https://github.com/LunarWerxs/vectormojo'
 const helpSeenKey = 'vectormojo:help-seen:v1'
 let seq = 0
+let connectionsRestorePromise: Promise<void> | null = null
 
 const baseName = (n: string) => n.replace(/\.[^.]+$/, '')
 
@@ -63,6 +84,60 @@ function closeHelp() {
   helpDialog.value?.close()
 }
 
+function openAccountDialog() {
+  if (!accountDialog.value?.open) accountDialog.value?.showModal()
+}
+
+function closeAccountDialog() {
+  pendingFiles.value = []
+  connectionsError.value = ''
+  accountDialog.value?.close()
+}
+
+async function restoreConnectionsSession() {
+  try {
+    if (await connections.isSignedIn()) {
+      connectionsUser.value = await connections.getUser()
+    }
+  } catch {
+    // A revoked or expired session should behave like a cleanly signed-out app.
+    await connections.signOut()
+    connectionsUser.value = null
+  }
+}
+
+function ensureConnectionsSessionRestored() {
+  connectionsRestorePromise ??= restoreConnectionsSession()
+  return connectionsRestorePromise
+}
+
+async function signInWithConnections() {
+  connectionsBusy.value = true
+  connectionsError.value = ''
+  try {
+    connectionsUser.value = await connections.signInPopup()
+    accountDialog.value?.close()
+    const queued = pendingFiles.value.splice(0)
+    if (queued.length) await addFiles(queued)
+  } catch (err) {
+    connectionsError.value =
+      err instanceof Error ? err.message : 'Connections sign-in did not complete.'
+  } finally {
+    connectionsBusy.value = false
+  }
+}
+
+async function signOutOfConnections() {
+  connectionsBusy.value = true
+  connectionsError.value = ''
+  try {
+    await connections.signOut({ revoke: true })
+    connectionsUser.value = null
+  } finally {
+    connectionsBusy.value = false
+  }
+}
+
 async function trySampleFromHelp() {
   closeHelp()
   await trySample()
@@ -74,10 +149,15 @@ onMounted(() => {
   } catch {
     openHelp()
   }
+  void ensureConnectionsSessionRestored()
 })
 
 function applyResult(item: Item, result: ToSvgResult) {
   item.svg = optimizeSvg(result.svg)
+  const dimensions = pngDimensionsFromSvg(item.svg)
+  item.pngWidth = dimensions.width
+  item.pngHeight = dimensions.height
+  item.pngAspectRatio = dimensions.width / dimensions.height
   item.warnings = result.warnings
   item.layers = result.meta.layers as number | undefined
   item.pages = result.meta.pages as number | undefined
@@ -88,7 +168,18 @@ function applyResult(item: Item, result: ToSvgResult) {
 }
 
 async function addFiles(files: FileList | File[]) {
-  for (const file of Array.from(files)) {
+  await ensureConnectionsSessionRestored()
+  const incoming = Array.from(files)
+  for (let index = 0; index < incoming.length; index += 1) {
+    const file = incoming[index] as File
+    if (
+      !connectionsUser.value &&
+      guestConversionCount.value >= GUEST_CONVERSION_LIMIT
+    ) {
+      pendingFiles.value.push(...incoming.slice(index))
+      openAccountDialog()
+      break
+    }
     // reactive() so later mutations (status/svg) go through Vue's proxy and
     // trigger re-renders; a raw object reference would update silently.
     const item = reactive<Item>({
@@ -101,6 +192,10 @@ async function addFiles(files: FileList | File[]) {
       transparentBackground: true,
       precision: 2,
       minify: true,
+      pngWidth: 1,
+      pngHeight: 1,
+      pngAspectRatio: 1,
+      lockPngAspect: true,
     })
     items.value.unshift(item)
     try {
@@ -116,6 +211,9 @@ async function addFiles(files: FileList | File[]) {
       applyResult(item, res)
       if ((item.pages ?? 0) > 1) item.source = bytes
       item.status = 'done'
+      if (!connectionsUser.value) {
+        guestConversionCount.value = recordGuestConversion()
+      }
     } catch (err) {
       item.status = 'error'
       item.error = err instanceof Error ? err.message : String(err)
@@ -193,10 +291,14 @@ async function downloadPng(item: Item) {
     const svg = await exportSvg(item)
     const blob = await svgToPng(
       svg,
-      pngScale.value,
+      { width: item.pngWidth, height: item.pngHeight },
       item.transparentBackground ? undefined : '#ffffff',
     )
-    download(blob, baseName(item.name) + '.png', 'image/png')
+    download(
+      blob,
+      `${baseName(item.name)}-${Math.round(item.pngWidth)}x${Math.round(item.pngHeight)}.png`,
+      'image/png',
+    )
   } catch (err) {
     item.error = 'PNG export failed: ' + (err instanceof Error ? err.message : String(err))
   }
@@ -239,12 +341,33 @@ async function copySvg(item: Item) {
   }
 }
 
+function updatePngWidth(item: Item, event: Event) {
+  const width = Math.max(1, Math.round(Number((event.target as HTMLInputElement).value)))
+  item.pngWidth = Number.isFinite(width) ? width : 1
+  if (item.lockPngAspect) {
+    item.pngHeight = Math.max(1, Math.round(item.pngWidth / item.pngAspectRatio))
+  }
+}
+
+function updatePngHeight(item: Item, event: Event) {
+  const height = Math.max(1, Math.round(Number((event.target as HTMLInputElement).value)))
+  item.pngHeight = Number.isFinite(height) ? height : 1
+  if (item.lockPngAspect) {
+    item.pngWidth = Math.max(1, Math.round(item.pngHeight * item.pngAspectRatio))
+  }
+}
+
 function remove(id: number) {
   items.value = items.value.filter((i) => i.id !== id)
 }
 
 const kb = (n: number) => (n < 1024 ? n + ' B' : (n / 1024).toFixed(0) + ' KB')
-const doneCount = computed(() => items.value.filter((i) => i.status === 'done').length)
+const guestRemaining = computed(() =>
+  guestConversionsRemaining(guestConversionCount.value),
+)
+const accountName = computed(() =>
+  String(connectionsUser.value?.name || 'Connections member'),
+)
 </script>
 
 <template>
@@ -263,14 +386,48 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            class="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 shadow-sm hover:border-indigo-400 hover:text-indigo-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300"
-            @click="openHelp"
-          >
-            What can I do here?
-          </button>
+          <div class="flex flex-wrap items-center justify-end gap-2">
+            <div
+              v-if="connectionsUser"
+              class="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs dark:border-emerald-900 dark:bg-emerald-950/50"
+            >
+              <span class="font-medium text-emerald-700 dark:text-emerald-300">
+                {{ accountName }} · unlimited
+              </span>
+              <button
+                type="button"
+                class="text-neutral-500 underline underline-offset-2 hover:text-neutral-800 dark:hover:text-neutral-200"
+                :disabled="connectionsBusy"
+                @click="signOutOfConnections"
+              >
+                Sign out
+              </button>
+            </div>
+            <button
+              v-else
+              type="button"
+              class="rounded-lg bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-600 disabled:opacity-60"
+              :disabled="connectionsBusy"
+              @click="signInWithConnections"
+            >
+              {{ connectionsBusy ? 'Connecting…' : 'Sign in for unlimited' }}
+            </button>
+            <button
+              type="button"
+              class="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-700 shadow-sm hover:border-indigo-400 hover:text-indigo-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300"
+              @click="openHelp"
+            >
+              What can I do here?
+            </button>
+          </div>
         </div>
+        <p
+          v-if="connectionsError"
+          class="mt-3 text-right text-xs text-red-500"
+          role="alert"
+        >
+          {{ connectionsError }}
+        </p>
       </header>
 
       <section class="mb-6 max-w-3xl">
@@ -316,6 +473,27 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
         </button>
       </label>
 
+      <div
+        class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-xs dark:border-neutral-800 dark:bg-neutral-900"
+      >
+        <p v-if="connectionsUser" class="text-emerald-600 dark:text-emerald-400">
+          Connected through Connections. Convert as many files as you like.
+        </p>
+        <p v-else class="text-neutral-500 dark:text-neutral-400">
+          {{ guestRemaining }} of {{ GUEST_CONVERSION_LIMIT }} free guest conversions remaining
+          in this browser. A free Connections account unlocks unlimited use.
+        </p>
+        <button
+          v-if="!connectionsUser"
+          type="button"
+          class="font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+          :disabled="connectionsBusy"
+          @click="signInWithConnections"
+        >
+          Continue with Connections
+        </button>
+      </div>
+
       <section class="mt-4 grid gap-3 sm:grid-cols-3" aria-label="Common uses">
         <article class="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
           <p class="text-sm font-semibold">Rescue the vector</p>
@@ -336,19 +514,6 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
           </p>
         </article>
       </section>
-
-      <!-- PNG scale control -->
-      <div v-if="doneCount" class="mt-4 flex items-center gap-2 text-xs text-neutral-500">
-        <span>PNG export scale</span>
-        <select
-          v-model.number="pngScale"
-          class="rounded border border-neutral-300 bg-transparent px-1.5 py-0.5 dark:border-neutral-700"
-        >
-          <option :value="1">1×</option>
-          <option :value="2">2×</option>
-          <option :value="4">4×</option>
-        </select>
-      </div>
 
       <!-- Results -->
       <ul class="mt-6 space-y-4">
@@ -458,10 +623,39 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
                   <input v-model="item.minify" type="checkbox" />
                   Minify SVG
                 </label>
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span>PNG dimensions</span>
+                  <input
+                    :value="item.pngWidth"
+                    type="number"
+                    min="1"
+                    max="32767"
+                    inputmode="numeric"
+                    :aria-label="`PNG width for ${item.name}`"
+                    class="w-20 rounded border border-neutral-300 bg-transparent px-1.5 py-0.5 dark:border-neutral-700"
+                    @input="updatePngWidth(item, $event)"
+                  />
+                  <span aria-hidden="true">×</span>
+                  <input
+                    :value="item.pngHeight"
+                    type="number"
+                    min="1"
+                    max="32767"
+                    inputmode="numeric"
+                    :aria-label="`PNG height for ${item.name}`"
+                    class="w-20 rounded border border-neutral-300 bg-transparent px-1.5 py-0.5 dark:border-neutral-700"
+                    @input="updatePngHeight(item, $event)"
+                  />
+                  <span>px</span>
+                  <label class="ml-1 flex items-center gap-1">
+                    <input v-model="item.lockPngAspect" type="checkbox" />
+                    Lock ratio
+                  </label>
+                </div>
               </div>
 
               <!-- Actions -->
-              <div v-if="item.status === 'done'" class="mt-3 flex gap-2">
+              <div v-if="item.status === 'done'" class="mt-3 flex flex-wrap gap-2">
                 <button
                   class="rounded-lg bg-indigo-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-600"
                   @click="downloadSvg(item)"
@@ -472,7 +666,7 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
                   class="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
                   @click="downloadPng(item)"
                 >
-                  PNG {{ pngScale }}×
+                  PNG {{ Math.round(item.pngWidth) }}×{{ Math.round(item.pngHeight) }}
                 </button>
                 <button
                   class="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
@@ -606,6 +800,53 @@ const doneCount = computed(() => items.value.filter((i) => i.status === 'done').
             @click="closeHelp"
           >
             Got it—let me drop a file
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog
+      ref="accountDialog"
+      class="help-dialog w-[min(92vw,32rem)] rounded-2xl border border-neutral-200 bg-white p-0 text-neutral-900 shadow-2xl dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100"
+      aria-labelledby="account-title"
+      @cancel.prevent="closeAccountDialog"
+      @click.self="closeAccountDialog"
+    >
+      <div class="p-6 sm:p-8">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-500">
+          Keep converting for free
+        </p>
+        <h2 id="account-title" class="mt-2 text-2xl font-semibold tracking-tight">
+          You’ve used your 10 guest conversions.
+        </h2>
+        <p class="mt-4 leading-7 text-neutral-600 dark:text-neutral-300">
+          Create or sign in to a free Connections account to continue with
+          unlimited conversions. Your design files still stay entirely inside
+          this browser tab.
+        </p>
+        <p
+          v-if="connectionsError"
+          class="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950/40 dark:text-red-300"
+          role="alert"
+        >
+          {{ connectionsError }}
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            class="rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-600 disabled:opacity-60"
+            :disabled="connectionsBusy"
+            @click="signInWithConnections"
+          >
+            {{ connectionsBusy ? 'Connecting…' : 'Continue with Connections' }}
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border border-neutral-300 px-4 py-2.5 text-sm font-semibold hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            :disabled="connectionsBusy"
+            @click="closeAccountDialog"
+          >
+            Not now
           </button>
         </div>
       </div>

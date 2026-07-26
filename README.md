@@ -28,8 +28,9 @@ can turn into *something* editable before lunch.
 
 **VectorMojo is the escape hatch.** Drop in the awkward design file, let the
 browser pull out what it can, then take the result as SVG, PNG, PDF, or copied
-markup. There is no account, no upload step, and no server holding on to the
-original.
+markup. The first 10 conversions work as a guest; a free Connections account
+unlocks unlimited conversions. There is no upload step and no server holding on
+to the original.
 
 <p align="center">
   <img src=".github/screenshots/conversion.png" alt="VectorMojo converting the bundled PSD sample into an SVG with export controls" width="880" />
@@ -44,7 +45,8 @@ original.
 - **Traces the bitmap when that is the only option.** PNG and JPEG tracing is
   approximate, but it is often enough for a draft, icon, or starting point.
 - **Exports the useful version.** Download SVG, transparent or white-background
-  PNG, and PDF—or copy the SVG straight into a project.
+  PNG at exact pixel dimensions, and PDF—or copy the SVG straight into a
+  project.
 - **Handles the small annoying details.** Multi-page PDFs, background choice,
   export precision, batch drops, masks, patterns, gradients, and transparent
   previews are already accounted for.
@@ -88,6 +90,10 @@ files you give it.
 
 The production build is a collection of static files, which is why it can live
 on Cloudflare Pages without a database, upload bucket, or processing server.
+Connections supplies optional account authentication through its public,
+PKCE-only browser SDK; only the sign-in session leaves the tab. The artwork
+never does. The quota and authentication decisions are documented in
+[`docs/CONNECTIONS.md`](docs/CONNECTIONS.md).
 
 ## A realistic note about fidelity
 
@@ -128,8 +134,9 @@ Private scratch artwork belongs in the ignored `local-samples/` directory.
 
 ## Built with
 
-**Bun** · **Vue 3** · **Vite** · **Tailwind CSS 4** · **ag-psd** · **MuPDF.js** ·
-**Ghostscript WASM** · **SVGO** · **ImageTracer.js** · **jsPDF**
+**Bun** · **Vue 3** · **Vite** · **Tailwind CSS 4** · **Connections** ·
+**ag-psd** · **MuPDF.js** · **Ghostscript WASM** · **SVGO** ·
+**ImageTracer.js** · **jsPDF**
 
 The converter registry is in [`src/lib/registry.ts`](src/lib/registry.ts);
 each format lazy-loads its own engine, so opening the page does not immediately
