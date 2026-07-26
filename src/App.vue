@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import {
+  ConnectError,
   connections,
   type ConnectUser,
 } from './lib/connections'
@@ -115,11 +116,14 @@ async function signInWithConnections() {
   connectionsBusy.value = true
   connectionsError.value = ''
   try {
-    connectionsUser.value = await connections.signInPopup()
+    connectionsUser.value = await connections.signInDialog({
+      appName: 'VectorMojo',
+    })
     accountDialog.value?.close()
     const queued = pendingFiles.value.splice(0)
     if (queued.length) await addFiles(queued)
   } catch (err) {
+    if (err instanceof ConnectError && err.code === 'cancelled') return
     connectionsError.value =
       err instanceof Error ? err.message : 'Connections sign-in did not complete.'
   } finally {

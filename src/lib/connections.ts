@@ -1,4 +1,4 @@
-import { createConnect, type ConnectUser } from '@cnct/connect'
+import { ConnectError, createConnect, type ConnectUser } from '@cnct/connect'
 
 // Public OAuth client ID for VectorMojo's PKCE-only browser app. This identifies
 // the app; it is not a secret. The developer API key used to register it never
@@ -8,4 +8,5 @@ export const connections = createConnect({
   scopes: ['openid', 'profile', 'photo'],
 })
 
+export { ConnectError }
 export type { ConnectUser }
