@@ -5,6 +5,10 @@
   "license": "MIT",
   "type": "module",
   "description": "Client-side design-file to vector converter. 100% local compute, static-hostable (Cloudflare/GitHub Pages).",
+  "engines": {
+    "bun": ">=1.3.14",
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
     "check:public": "bun run tools/check-public-assets.ts",

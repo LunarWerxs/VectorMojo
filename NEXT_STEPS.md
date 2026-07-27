@@ -15,11 +15,12 @@ everything not yet done, roughly in priority order.
   owner action. ~5 min.
 - [ ] **Git-triggered builds (optional).** Right now deploys are manual:
   `bun run build` then `bunx wrangler pages deploy dist --project-name vectormojo`.
-  To auto-deploy on push, connect the GitHub repo in the CF Pages project.
-  Caveat: the CF build image detects Bun from the legacy binary `bun.lockb`, and
-  may NOT from this repo's newer text `bun.lock`; if the build errors with
-  `bun: command not found`, either set a `BUN_VERSION` build env var, add an
-  `engines`/`.nvmrc`, or keep deploying prebuilt `dist/` as we do now.
+  To auto-deploy on push, connect the GitHub repo in the CF Pages project. The
+  Bun-detection blocker is removed: `package.json` now has an `engines` field
+  (`bun >=1.3.14`, `node >=20`) and a `.node-version` file, so the CF build
+  image has a deterministic version to pick up even from the text `bun.lock`.
+  What's left is the owner-side dashboard connection; see `OWNER_ACTIONS.md`
+  for the exact click path and build settings to enter.
 - [x] **Repo visibility.** Public at <https://github.com/LunarWerxs/vectormojo>
   with MIT project licensing, a security policy, secret scanning, push
   protection, dependency alerts, automated fixes, and private vulnerability
