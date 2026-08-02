@@ -1,7 +1,7 @@
 # VectorMojo, next steps
 
 Status as of 2026-07-23: **v2 is live** at
-<https://vectormojo.pages.dev>, deployed to Cloudflare Pages from audited commit
+<https://vectormojo.lunarwerx.com>, deployed to Cloudflare Pages from audited commit
 `575d6bd`. The source repository is public under MIT for VectorMojo's original
 code, with the AGPL runtime components disclosed separately. This file tracks
 everything not yet done, roughly in priority order.

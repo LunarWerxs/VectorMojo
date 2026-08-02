@@ -378,6 +378,30 @@ const accountName = computed(() =>
   <div class="min-h-full bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
     <div class="mx-auto max-w-5xl px-5 py-10">
       <header class="mb-8">
+        <!-- Up to the studio. VectorMojo serves from a lunarwerx.com subdomain,
+             and this is the only route back to the parent site. It sits above
+             the product mark rather than beside it so the hierarchy reads in
+             the order it actually is: studio, then product. -->
+        <a
+          href="https://lunarwerx.com/"
+          class="mb-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="h-3.5 w-3.5 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M19 12H5" />
+            <path d="m12 19-7-7 7-7" />
+          </svg>
+          LunarWerx Studios
+        </a>
+
         <div class="flex items-start justify-between gap-4">
           <div class="flex items-center gap-3">
             <img :src="brandMarkUrl" alt="" class="h-10 w-10" />

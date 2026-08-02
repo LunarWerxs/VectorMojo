@@ -1,18 +1,18 @@
 <div align="center">
 
-<a href="https://vectormojo.pages.dev">
+<a href="https://vectormojo.lunarwerx.com">
   <img src="public/og.png" alt="VectorMojo — turn the file you have into the vector you need" width="880" />
 </a>
 
 <p>
-  <a href="https://vectormojo.pages.dev"><b>Open VectorMojo</b></a>
+  <a href="https://vectormojo.lunarwerx.com"><b>Open VectorMojo</b></a>
   &nbsp;·&nbsp; <a href="#what-it-does">What it does</a>
   &nbsp;·&nbsp; <a href="#what-goes-in">Formats</a>
   &nbsp;·&nbsp; <a href="#run-it-yourself">Run locally</a>
 </p>
 
 <p>
-  <a href="https://vectormojo.pages.dev"><img alt="Live site" src="https://img.shields.io/badge/live-vectormojo.pages.dev-8b5cf6?style=flat-square" /></a>
+  <a href="https://vectormojo.lunarwerx.com"><img alt="Live site" src="https://img.shields.io/badge/live-vectormojo.lunarwerx.com-8b5cf6?style=flat-square" /></a>
   <a href="https://github.com/LunarWerxs/vectormojo/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/LunarWerxs/vectormojo/ci.yml?branch=main&style=flat-square&label=CI" /></a>
   <img alt="Runs locally in your browser" src="https://img.shields.io/badge/files-stay%20in%20your%20browser-06b6d4?style=flat-square" />
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" /></a>
@@ -53,7 +53,7 @@ to the original.
 
 ## Try it
 
-Open **[vectormojo.pages.dev](https://vectormojo.pages.dev)** and drop a file.
+Open **[vectormojo.lunarwerx.com](https://vectormojo.lunarwerx.com)** and drop a file.
 That is the whole setup.
 
 No suitable file nearby? Click **No file handy? Try the sample**. VectorMojo
@@ -154,7 +154,7 @@ license texts and a corresponding-source pointer. See
 
 <div align="center">
   <br />
-  <a href="https://vectormojo.pages.dev"><img src="public/vectormojo-mark.svg" alt="VectorMojo" width="48" /></a>
+  <a href="https://vectormojo.lunarwerx.com"><img src="public/vectormojo-mark.svg" alt="VectorMojo" width="48" /></a>
   <br /><br />
   <sub>Built by <a href="https://lunarwerx.com"><b>LunarWerxs</b></a> · Deployed on Cloudflare Pages</sub>
 </div>

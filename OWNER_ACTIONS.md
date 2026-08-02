@@ -1,21 +1,29 @@
 # Owner actions
 
-Two dashboard-only steps remain from NEXT_STEPS.md. Both require Cloudflare
-account access this agent does not have.
+One dashboard-only step remains from NEXT_STEPS.md.
 
-## 1. Custom domain
+## 1. Custom domain: DONE 2026-08-02
 
-1. Cloudflare dashboard, Workers & Pages, `vectormojo` project.
-2. Custom domains tab, Set up a custom domain.
-3. Enter the domain, e.g. `vectormojo.lunarwerx.com`, Continue.
-4. Cloudflare shows the DNS record it needs. For a subdomain like the example
-   above, add in the DNS zone for `lunarwerx.com`:
-   - Type: `CNAME`
-   - Name: `vectormojo`
-   - Target: `vectormojo.pages.dev`
-   - Proxy status: Proxied (orange cloud)
-5. Save, then Activate domain in the Pages dashboard. Propagation is usually
-   under a few minutes since the zone is already on Cloudflare.
+`vectormojo.lunarwerx.com` is live and its certificate is active. Done over the
+API rather than the dashboard: the custom domain was added to the Pages project,
+and the zone got a proxied `CNAME vectormojo -> vectormojo.pages.dev`.
+
+The site's own URLs moved with it (canonical, Open Graph, Twitter card), and it
+now carries robots.txt, sitemap.xml, its own analytics site, and the
+back-to-studio link every product site has.
+
+One thing this does NOT do, and Cloudflare Pages gives no setting for: the old
+`vectormojo.pages.dev` keeps serving the same pages rather than redirecting.
+The canonical tag names `vectormojo.lunarwerx.com`, which is what search engines
+consolidate on, so this is untidy rather than harmful. Redirecting it properly
+would mean adding a Pages Function to this direct-upload project purely to
+inspect the Host header, which is not worth it today.
+
+**This project is direct-upload, not Git-connected** (see step 2 below), so a
+push to GitHub does NOT deploy. Ship changes with:
+
+    bun run build
+    wrangler pages deploy dist --project-name=vectormojo --branch=main
 
 ## 2. Git-triggered builds
 
