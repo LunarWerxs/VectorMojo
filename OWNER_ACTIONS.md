@@ -25,18 +25,36 @@ push to GitHub does NOT deploy. Ship changes with:
     bun run build
     wrangler pages deploy dist --project-name=vectormojo --branch=main
 
-## 2. Git-triggered builds
+## 2. Git-triggered builds: two secrets away
 
-1. Cloudflare dashboard, Workers & Pages, `vectormojo` project.
-2. Settings tab, Builds, Connect to Git (or "Manage repository").
-3. Authorize GitHub if prompted, select `LunarWerxs/vectormojo`, branch `main`.
-4. Build settings to enter:
-   - Build command: `bun run build`
-   - Build output directory: `dist`
-   - Root directory: `/`
-5. Environment variables, add:
-   - `BUN_VERSION` = `1.3.14`
-6. Save and deploy. The repo now also carries `package.json` `engines`
-   (`bun >=1.3.14`, `node >=20`) and a `.node-version` file (`22`), so the
-   build image should detect Bun correctly even without the env var; keep
-   the var set anyway as a pin against future default-version drift.
+Cloudflare's own Git integration is **not available for this project** and no
+dashboard click will change that. It was created as Direct Upload, and the API
+is explicit:
+
+    PATCH /accounts/{id}/pages/projects/vectormojo
+    8000069 "You cannot update the `source` object in a Direct Uploads project."
+
+Converting means deleting and recreating the project, which drops its
+deployment history and risks losing the `vectormojo.pages.dev` subdomain while
+the name is briefly free. Not worth it.
+
+So the deploy lives in `.github/workflows/ci.yml` instead, as a `deploy` job
+that runs after the tests on every push to `main`. It is already written and
+already merged. It skips itself with a notice until these two repo secrets
+exist, so CI stays green in the meantime:
+
+1. Cloudflare dashboard, My Profile, API Tokens, Create Token.
+2. Use the **Edit Cloudflare Workers** template, or a custom token with
+   `Account / Cloudflare Pages / Edit`. Scope it to this account only.
+3. GitHub, `LunarWerxs/VectorMojo`, Settings, Secrets and variables, Actions:
+   - `CLOUDFLARE_API_TOKEN` = the token from step 2
+   - `CLOUDFLARE_ACCOUNT_ID` = the account id (the hex string in any Cloudflare
+     dashboard URL). It is not a credential, but it is kept out of the public
+     workflow file anyway.
+
+Push anything to `main` afterwards and the deploy runs itself.
+
+Until then, ship by hand:
+
+    bun run build
+    wrangler pages deploy dist --project-name=vectormojo --branch=main
