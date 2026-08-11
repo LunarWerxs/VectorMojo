@@ -95,6 +95,25 @@ PKCE-only browser SDK; only the sign-in session leaves the tab. The artwork
 never does. The quota and authentication decisions are documented in
 [`docs/CONNECTIONS.md`](docs/CONNECTIONS.md).
 
+### The one network call
+
+VectorMojo's "100% local compute" promise is about the files you convert, and
+that part is absolute: file reading, parsing, tracing, and export never leave
+the tab. The app does make exactly one outbound call on its own, and it is
+worth stating plainly rather than leaving implicit.
+
+Once per browser session, VectorMojo sends a single anonymous visit ping to
+Connections' Studio service (`studio.connections.icu/v1/app/vectormojo/latest`)
+so we know the site is still being used. What it sends: a random visitor id
+stored in `localStorage` (not tied to any account or file you touch), the app
+version, and, if you arrived from a link, the referring site's hostname only -
+never the full URL. What the server derives from the request itself and
+stores alongside that: coarse geo (country, region, city, timezone), network
+ASN, locale, and a truncated user agent. It never logs an IP address. The
+ping is skipped entirely when Do Not Track or Global Privacy Control is
+enabled, and skipped on localhost. No file, filename, or conversion result is
+ever part of it. The source is [`src/lib/analytics.ts`](src/lib/analytics.ts).
+
 ## A realistic note about fidelity
 
 Design formats are messy. A Photoshop file can mix true paths, pixels, fonts,
