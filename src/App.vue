@@ -57,6 +57,7 @@ const accountDialog = ref<HTMLDialogElement | null>(null)
 const connectionsUser = ref<ConnectUser | null>(null)
 const connectionsBusy = ref(false)
 const connectionsError = ref('')
+const sampleError = ref('')
 const guestConversionCount = ref(readGuestConversionCount())
 const pendingFiles = ref<File[]>([])
 const brandMarkUrl = `${import.meta.env.BASE_URL}vectormojo-mark.svg`
@@ -263,13 +264,14 @@ function onPick(e: Event) {
 }
 
 async function trySample() {
+  sampleError.value = ''
   try {
     const res = await fetch('./samples/vector-mojo-sample.psd')
     if (!res.ok) throw new Error(`sample not found (${res.status})`)
     const blob = await res.blob()
     await addFiles([new File([blob], 'vector-mojo-sample.psd')])
   } catch (err) {
-    alert('Sample unavailable: ' + (err instanceof Error ? err.message : err))
+    sampleError.value = 'Sample unavailable: ' + (err instanceof Error ? err.message : String(err))
   }
 }
 
@@ -499,6 +501,13 @@ const accountName = computed(() =>
         >
           No file handy? Try the sample
         </button>
+        <p
+          v-if="sampleError"
+          class="mt-3 text-xs text-red-500"
+          role="alert"
+        >
+          {{ sampleError }}
+        </p>
       </label>
 
       <div

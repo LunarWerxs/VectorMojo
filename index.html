@@ -76,9 +76,75 @@
         })(window, document, 'ak_50bfac4acd36d7629ca0404821848ebae34c');
     </script>
     <!-- End ARGUS Analytics Pixel -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "@id": "https://vectormojo.lunarwerx.com/#app",
+            "name": "VectorMojo",
+            "description": "Convert PSD, PDF, AI, EPS, SVG, PNG, and JPEG to clean vectors entirely in your browser. No upload, no server.",
+            "url": "https://vectormojo.lunarwerx.com/",
+            "applicationCategory": "DesignApplication",
+            "browserRequirements": "Requires JavaScript and WebAssembly.",
+            "featureList": [
+              "Rescues vector artwork from PSD, PSB, PDF, modern Illustrator (.ai), and EPS files",
+              "Opens, sanitizes, normalizes, rounds, prettifies, or minifies existing SVG files",
+              "Traces PNG and JPEG bitmaps into approximate SVG paths",
+              "Exports SVG, transparent or white-background PNG at exact pixel dimensions, or PDF, or copies the SVG to the clipboard",
+              "Handles multi-page PDFs, background choice, export precision, batch drops, masks, patterns, gradients, and transparent previews",
+              "Runs entirely in the browser with no file upload and no server"
+            ],
+            "image": "https://vectormojo.lunarwerx.com/og.png",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "The first 10 conversions work as a guest; a free Connections account unlocks unlimited conversions." },
+            "author": { "@id": "https://lunarwerx.com/#org" },
+            "publisher": { "@id": "https://lunarwerx.com/#org" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://lunarwerx.com/#org",
+            "name": "LunarWerx Studios",
+            "url": "https://lunarwerx.com/",
+            "logo": "https://lunarwerx.com/logowhite.webp",
+            "sameAs": ["https://github.com/LunarWerxs"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://vectormojo.lunarwerx.com/#site",
+            "name": "VectorMojo",
+            "url": "https://vectormojo.lunarwerx.com/",
+            "publisher": { "@id": "https://lunarwerx.com/#org" }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>
+    <noscript>
+      <h1>VectorMojo</h1>
+      <p>
+        VectorMojo turns awkward design files &mdash; PSD, PSB, PDF, Illustrator AI, EPS, SVG,
+        PNG, and JPEG &mdash; into clean vector graphics, entirely inside your browser. There is
+        no upload step and no server that holds on to the original file; file reading, parsing,
+        tracing, rendering, and export all happen in the current browser tab with JavaScript and
+        WebAssembly.
+      </p>
+      <p>
+        It is built for anyone who needs the vector trapped inside a design file: pulling a logo
+        out of a PSD, getting real SVG geometry out of a PDF someone sent years ago, or turning a
+        PNG into an editable starting point.
+      </p>
+      <ul>
+        <li>Rescues vector artwork from PSD/PSB, PDF, modern Illustrator (.ai), and EPS files</li>
+        <li>Opens, sanitizes, normalizes, rounds, prettifies, or minifies SVG files you already have</li>
+        <li>Traces PNG and JPEG bitmaps into approximate SVG paths when tracing is the only option</li>
+        <li>Exports SVG, transparent or white-background PNG at exact pixel dimensions, or PDF, or copies the SVG straight into a project</li>
+        <li>Handles multi-page PDFs, background choice, export precision, batch drops, masks, patterns, gradients, and transparent previews</li>
+        <li>The first 10 conversions work as a guest; a free Connections account unlocks unlimited conversions</li>
+      </ul>
+    </noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,0 +1,37 @@
+# VectorMojo
+
+> Convert PSD, PSB, PDF, Illustrator AI, EPS, SVG, PNG, and JPEG design files into clean vectors, entirely in your browser. No upload, no server.
+
+VectorMojo is the escape hatch for the design file you have but cannot use: the logo trapped inside a PSD, a clean SVG pulled out of a PDF somebody sent years ago, or a PNG turned into something editable before lunch. There is no VectorMojo backend. File reading, parsing, tracing, rendering, and export all happen in the current browser tab with JavaScript and WebAssembly; closing the tab closes the workbench, and VectorMojo does not upload or store the files it is given.
+
+## Key facts
+- Converts PSD/PSB, PDF, modern Illustrator `.ai` (PDF-compatible only; older non-PDF AI files are not supported), and EPS/PostScript (through local Ghostscript and MuPDF WebAssembly) into real vector SVG.
+- Also opens, sanitizes, normalizes, rounds, prettifies, or minifies SVG files you already have.
+- Traces PNG and JPEG bitmaps into approximate SVG paths with a local color trace; explicitly approximate, but often enough for a draft, icon, or starting point.
+- Everything lands in SVG first, then exports as SVG, transparent or white-background PNG at exact pixel dimensions, or PDF, or copies as clipboard-ready SVG markup.
+- Handles multi-page PDFs, background choice, export precision, batch drops, masks, patterns, gradients, and transparent previews.
+- The first 10 conversions work as a guest; a free Connections account unlocks unlimited conversions. No file, filename, or conversion result ever leaves the browser tab.
+- Ships a small, neutral sample PSD ("No file handy? Try the sample") so the full conversion and export flow can be seen without providing your own artwork.
+- Built with Bun, Vue 3, Vite, Tailwind CSS 4, Connections, ag-psd, MuPDF.js, Ghostscript WASM, SVGO, ImageTracer.js, and jsPDF.
+
+## Common questions
+
+### Are my files uploaded anywhere?
+No. There is no VectorMojo backend at all. Reading, parsing, tracing, rendering, and export every one of them happen in the current browser tab using JavaScript and WebAssembly. No file, filename, or conversion result ever leaves the tab, and closing it closes the workbench.
+
+### Is VectorMojo free?
+The first 10 conversions work as a guest, with no account at all. A free Connections account unlocks unlimited conversions after that. There is nothing to pay for either way.
+
+### Which file types can it open?
+PSD and PSB, PDF, modern PDF-compatible Illustrator `.ai` files, and EPS or PostScript through local Ghostscript and MuPDF WebAssembly. It also opens SVG files you already have, and traces PNG and JPEG bitmaps. Older, non-PDF Illustrator files are not supported.
+
+### Can it turn a PNG into a real vector?
+It traces PNG and JPEG bitmaps into approximate SVG paths using a local colour trace. That result is explicitly approximate rather than a faithful conversion, but it is often enough for a draft, an icon, or a starting point to clean up by hand.
+
+### What can I export?
+Everything lands in SVG first. From there you can export SVG, PNG with a transparent or white background at exact pixel dimensions, or PDF, or copy clipboard-ready SVG markup straight into a project. Export precision and background choice are both adjustable.
+
+## Links
+- Home: https://vectormojo.lunarwerx.com/
+- Source code: https://github.com/LunarWerxs/vectormojo
+- License: https://github.com/LunarWerxs/vectormojo/blob/main/LICENSE
