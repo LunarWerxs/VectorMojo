@@ -49,18 +49,9 @@ jobs:
             echo "::notice::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID not set, skipping deploy. See OWNER_ACTIONS.md."
             exit 0
           fi
-          # Present is not the same as working. A token that is set and
-          # REJECTED is a deploy that used to run and silently stopped, and
-          # skipping it quietly means the green tick says "shipped" while the
-          # live site sits behind the commit. That is exactly how the sibling
-          # repo went unnoticed until 2026-08-17. Never-set stays a notice;
-          # rejected is red.
-          status=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" https://api.cloudflare.com/client/v4/user/tokens/verify)
-          if [ "$status" != "200" ]; then
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::error::CLOUDFLARE_API_TOKEN is rejected by Cloudflare (HTTP $status). Pages was NOT deployed and the live site is now behind this commit. Rotate the token."
-            exit 1
-          fi
+          # No /user/tokens/verify precheck here either - see the sibling repo:
+          # that endpoint 401s valid non-classic credentials, so gating on it
+          # blocks working deploys. wrangler-action reports the real failure.
           echo "ready=true" >> "$GITHUB_OUTPUT"
 
       - if: steps.guard.outputs.ready == 'true'
