@@ -58,3 +58,23 @@ Until then, ship by hand:
 
     bun run build
     wrangler pages deploy dist --project-name=vectormojo --branch=main
+
+**No local `wrangler login` is needed for that** (added 2026-08-24). The
+Connections MCP leases the vaulted Cloudflare credential into a child process as
+an env var, value-blind, so an agent can ship this site without the token ever
+being visible to it:
+
+    bun install --frozen-lockfile && bun run build \
+      && CLOUDFLARE_ACCOUNT_ID=36d7c731fd0352ef08ea7e46d2d20793 \
+         bunx wrangler pages deploy dist --project-name=vectormojo --branch=main
+
+run inside `shell { secrets: [{ service: "cloudflare", as: "CLOUDFLARE_API_TOKEN" }] }`.
+Done that way on 2026-08-24.
+
+**Why that same token is not simply pasted into the repo secrets to finish step
+2:** it is an *account* token that reaches four Cloudflare accounts, not just
+this one, and it has no permission to mint a narrower one for itself. This repo
+is public, so anyone with write access could exfiltrate it by adding a workflow.
+Step 2 stays open until a Workers-and-Pages-only token scoped to this account
+exists. Hand-shipping is the interim answer, not a blocker: every push still
+reports honestly that it deployed nothing.
