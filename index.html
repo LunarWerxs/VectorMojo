@@ -8,7 +8,7 @@
     <title>VectorMojo · design files to vectors, in your browser</title>
     <meta
       name="description"
-      content="Convert PSD, PDF, AI, EPS, SVG, PNG, and JPEG to clean vectors entirely in your browser. No upload, no server."
+      content="Convert PSD, PSB, PDF, AI, EPS, SVG, PNG, and JPEG design files into clean vector SVGs entirely in your browser. No upload, no server, free to start."
     />
     <link rel="canonical" href="https://vectormojo.lunarwerx.com/" />
     <meta property="og:type" content="website" />
@@ -98,6 +98,9 @@
             ],
             "image": "https://vectormojo.lunarwerx.com/og.png",
             "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "The first 10 conversions work as a guest; a free Connections account unlocks unlimited conversions." },
+            "softwareVersion": "0.1.0",
+            "operatingSystem": "Any (runs in the browser)",
+            "applicationCategory": "DesignApplication",
             "author": { "@id": "https://lunarwerx.com/#org" },
             "publisher": { "@id": "https://lunarwerx.com/#org" }
           },
@@ -115,6 +118,60 @@
             "name": "VectorMojo",
             "url": "https://vectormojo.lunarwerx.com/",
             "publisher": { "@id": "https://lunarwerx.com/#org" }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": "https://vectormojo.lunarwerx.com/#breadcrumb",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "LunarWerx Studios", "item": "https://lunarwerx.com/" },
+              { "@type": "ListItem", "position": 2, "name": "VectorMojo", "item": "https://vectormojo.lunarwerx.com/" }
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://vectormojo.lunarwerx.com/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Is VectorMojo free?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Yes, completely. The first 10 conversions work as a guest, no account needed. After that, a free Connections account unlocks unlimited conversions; there's no paid tier, no subscription, and no credit card required. VectorMojo's own source is MIT licensed and open on GitHub." }
+              },
+              {
+                "@type": "Question",
+                "name": "Does VectorMojo work offline, or does it upload my file?",
+                "acceptedAnswer": { "@type": "Answer", "text": "No file ever leaves your browser tab. VectorMojo has no backend: reading, parsing, tracing, rendering, and exporting all run locally in JavaScript and WebAssembly. Closing the tab closes the workbench. The only network call is a single anonymous visit ping that never includes your file, filename, or result." }
+              },
+              {
+                "@type": "Question",
+                "name": "What file formats does VectorMojo support?",
+                "acceptedAnswer": { "@type": "Answer", "text": "VectorMojo opens PSD, PSB, PDF, modern PDF-compatible Illustrator (.ai) files, EPS/PostScript, and SVG, plus traces PNG and JPEG bitmaps. Older, non-PDF Illustrator files aren't supported. From any input, it exports SVG, transparent or white-background PNG at exact pixel dimensions, PDF, or clipboard-ready SVG markup." }
+              },
+              {
+                "@type": "Question",
+                "name": "How is VectorMojo different from Adobe Illustrator or online file converters?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Illustrator is paid desktop software with a subscription and an Image Trace tool. Most online PSD/AI/EPS-to-SVG converters upload your file to a server for processing. VectorMojo runs the whole conversion, including tracing, inside your browser tab with WebAssembly, with no install, no upload, and no account required for the first 10 files." }
+              },
+              {
+                "@type": "Question",
+                "name": "Can VectorMojo turn a PNG or JPEG into a real editable vector?",
+                "acceptedAnswer": { "@type": "Answer", "text": "It traces PNG and JPEG bitmaps into approximate SVG paths using a local color trace, run entirely in the browser. That result is explicitly an approximation rather than a faithful reconstruction, but it's often good enough for a draft, an icon, or a starting point to clean up by hand." }
+              },
+              {
+                "@type": "Question",
+                "name": "Do I need to create an account to use VectorMojo?",
+                "acceptedAnswer": { "@type": "Answer", "text": "No. The first 10 conversions work as a guest with no sign-up at all. Creating a free Connections account only becomes necessary if you want unlimited conversions beyond that. VectorMojo never asks for payment details, and the sign-in session is the only thing that ever leaves your browser tab." }
+              },
+              {
+                "@type": "Question",
+                "name": "Is VectorMojo open source?",
+                "acceptedAnswer": { "@type": "Answer", "text": "Yes. VectorMojo's own code is MIT licensed, version 0.1.0, and hosted openly at github.com/LunarWerxs/vectormojo. The browser bundle also includes two AGPL-licensed components, MuPDF.js and Ghostscript WASM, for PDF and EPS handling; their license texts and corresponding-source pointers ship with every public build." }
+              },
+              {
+                "@type": "Question",
+                "name": "Does VectorMojo work on Mac, Windows, or Linux?",
+                "acceptedAnswer": { "@type": "Answer", "text": "VectorMojo runs entirely in the browser, so it works on any operating system with a modern browser that supports JavaScript and WebAssembly: Windows, macOS, Linux, and Chromebooks alike. There's nothing to install and nothing platform-specific; the same tab-based workbench runs everywhere." }
+              }
+            ]
           }
         ]
       }
@@ -123,27 +180,154 @@
   <body>
     <div id="app"></div>
     <noscript>
-      <h1>VectorMojo</h1>
-      <p>
-        VectorMojo turns awkward design files &mdash; PSD, PSB, PDF, Illustrator AI, EPS, SVG,
-        PNG, and JPEG &mdash; into clean vector graphics, entirely inside your browser. There is
-        no upload step and no server that holds on to the original file; file reading, parsing,
-        tracing, rendering, and export all happen in the current browser tab with JavaScript and
-        WebAssembly.
-      </p>
-      <p>
-        It is built for anyone who needs the vector trapped inside a design file: pulling a logo
-        out of a PSD, getting real SVG geometry out of a PDF someone sent years ago, or turning a
-        PNG into an editable starting point.
-      </p>
-      <ul>
-        <li>Rescues vector artwork from PSD/PSB, PDF, modern Illustrator (.ai), and EPS files</li>
-        <li>Opens, sanitizes, normalizes, rounds, prettifies, or minifies SVG files you already have</li>
-        <li>Traces PNG and JPEG bitmaps into approximate SVG paths when tracing is the only option</li>
-        <li>Exports SVG, transparent or white-background PNG at exact pixel dimensions, or PDF, or copies the SVG straight into a project</li>
-        <li>Handles multi-page PDFs, background choice, export precision, batch drops, masks, patterns, gradients, and transparent previews</li>
-        <li>The first 10 conversions work as a guest; a free Connections account unlocks unlimited conversions</li>
-      </ul>
+      <header>
+        <h1>VectorMojo</h1>
+        <p>Design files to vectors, in your browser. No upload, no server.</p>
+        <nav aria-label="Primary">
+          <a href="#what-it-does">What it does</a> ·
+          <a href="#comparison">How it compares</a> ·
+          <a href="#faq">FAQ</a> ·
+          <a href="https://github.com/LunarWerxs/vectormojo">Source on GitHub</a>
+        </nav>
+      </header>
+      <main>
+        <section id="what-it-does">
+          <h2>What VectorMojo does</h2>
+          <p>
+            VectorMojo turns awkward design files &mdash; PSD, PSB, PDF, Illustrator AI, EPS, SVG,
+            PNG, and JPEG &mdash; into clean vector graphics, entirely inside your browser. There is
+            no upload step and no server that holds on to the original file; file reading, parsing,
+            tracing, rendering, and export all happen in the current browser tab with JavaScript and
+            WebAssembly.
+          </p>
+          <p>
+            It is built for anyone who needs the vector trapped inside a design file: pulling a logo
+            out of a PSD, getting real SVG geometry out of a PDF someone sent years ago, or turning a
+            PNG into an editable starting point.
+          </p>
+          <ul>
+            <li>Rescues vector artwork from PSD/PSB, PDF, modern Illustrator (.ai), and EPS files</li>
+            <li>Opens, sanitizes, normalizes, rounds, prettifies, or minifies SVG files you already have</li>
+            <li>Traces PNG and JPEG bitmaps into approximate SVG paths when tracing is the only option</li>
+            <li>Exports SVG, transparent or white-background PNG at exact pixel dimensions, or PDF, or copies the SVG straight into a project</li>
+            <li>Handles multi-page PDFs, background choice, export precision, batch drops, masks, patterns, gradients, and transparent previews</li>
+            <li>The first 10 conversions work as a guest; a free Connections account unlocks unlimited conversions</li>
+          </ul>
+          <p>
+            8 input formats in, 4 export options out, built on 11 open-source and in-house
+            components (Bun, Vue 3, Vite, Tailwind CSS 4, Connections, ag-psd, MuPDF.js,
+            Ghostscript WASM, SVGO, ImageTracer.js, and jsPDF). Currently at version 0.1.0.
+          </p>
+        </section>
+        <section id="comparison">
+          <h2>How VectorMojo compares</h2>
+          <p>
+            People weighing VectorMojo up usually already have one of these open:
+          </p>
+          <ul>
+            <li>
+              <strong>Adobe Illustrator</strong> &mdash; the professional desktop standard, with
+              deep PSD/PDF/EPS support and its own Image Trace tool. It's paid, subscription-based,
+              and installs locally rather than running in a browser tab.
+            </li>
+            <li>
+              <strong>Online PSD/AI/EPS-to-SVG converters</strong> (the CloudConvert/Convertio
+              style of tool) &mdash; convenient and require no install, but work by uploading your
+              file to a server for processing.
+            </li>
+            <li>
+              <strong>Inkscape</strong> &mdash; free and open source, and includes bitmap tracing,
+              but it's a desktop application, it doesn't open PSD, and its Illustrator support
+              covers only .ai files saved with the PDF-compatible option, with some fidelity
+              loss on gradient meshes and transparency.
+            </li>
+            <li>
+              <strong>VectorMojo</strong> &mdash; runs the whole conversion, including bitmap
+              tracing, inside the browser tab with WebAssembly. No install, no upload, and no
+              account required for the first 10 conversions.
+            </li>
+          </ul>
+        </section>
+        <section id="faq">
+          <h2>Frequently asked questions</h2>
+          <h3>Is VectorMojo free?</h3>
+          <p>
+            Yes, completely. The first 10 conversions work as a guest, no account needed. After
+            that, a free Connections account unlocks unlimited conversions; there's no paid
+            tier, no subscription, and no credit card required. VectorMojo's own source is MIT
+            licensed and open on GitHub.
+          </p>
+          <h3>Does VectorMojo work offline, or does it upload my file?</h3>
+          <p>
+            No file ever leaves your browser tab. VectorMojo has no backend: reading, parsing,
+            tracing, rendering, and exporting all run locally in JavaScript and WebAssembly.
+            Closing the tab closes the workbench. The only network call is a single anonymous
+            visit ping that never includes your file, filename, or result.
+          </p>
+          <h3>What file formats does VectorMojo support?</h3>
+          <p>
+            VectorMojo opens PSD, PSB, PDF, modern PDF-compatible Illustrator (.ai) files,
+            EPS/PostScript, and SVG, plus traces PNG and JPEG bitmaps. Older, non-PDF Illustrator
+            files aren't supported. From any input, it exports SVG, transparent or
+            white-background PNG at exact pixel dimensions, PDF, or clipboard-ready SVG markup.
+          </p>
+          <h3>How is VectorMojo different from Adobe Illustrator or online file converters?</h3>
+          <p>
+            Illustrator is paid desktop software with a subscription and an Image Trace tool.
+            Most online PSD/AI/EPS-to-SVG converters upload your file to a server for processing.
+            VectorMojo runs the whole conversion, including tracing, inside your browser tab with
+            WebAssembly, with no install, no upload, and no account required for the first 10
+            files.
+          </p>
+          <h3>Can VectorMojo turn a PNG or JPEG into a real editable vector?</h3>
+          <p>
+            It traces PNG and JPEG bitmaps into approximate SVG paths using a local color trace,
+            run entirely in the browser. That result is explicitly an approximation rather than a
+            faithful reconstruction, but it's often good enough for a draft, an icon, or a
+            starting point to clean up by hand.
+          </p>
+          <h3>Do I need to create an account to use VectorMojo?</h3>
+          <p>
+            No. The first 10 conversions work as a guest with no sign-up at all. Creating a free
+            Connections account only becomes necessary if you want unlimited conversions beyond
+            that. VectorMojo never asks for payment details, and the sign-in session is the only
+            thing that ever leaves your browser tab.
+          </p>
+          <h3>Is VectorMojo open source?</h3>
+          <p>
+            Yes. VectorMojo's own code is MIT licensed, version 0.1.0, and hosted openly at
+            github.com/LunarWerxs/vectormojo. The browser bundle also includes two AGPL-licensed
+            components, MuPDF.js and Ghostscript WASM, for PDF and EPS handling; their license
+            texts and corresponding-source pointers ship with every public build.
+          </p>
+          <h3>Does VectorMojo work on Mac, Windows, or Linux?</h3>
+          <p>
+            VectorMojo runs entirely in the browser, so it works on any operating system with a
+            modern browser that supports JavaScript and WebAssembly: Windows, macOS,
+            Linux, and Chromebooks alike. There's nothing to install and nothing platform-specific;
+            the same tab-based workbench runs everywhere.
+          </p>
+        </section>
+      </main>
+      <footer>
+        <p>Last updated: 2026-08-23</p>
+        <nav aria-label="More from LunarWerx">
+          <p>More from LunarWerx Studios:</p>
+          <ul>
+            <li><a href="https://repoyeti.com">RepoYeti</a></li>
+            <li><a href="https://agenthydra.lunarwerx.com">AgentHydra</a></li>
+            <li><a href="https://devwebui.lunarwerx.com">DevWebUI</a></li>
+            <li><a href="https://sagethumbs.lunarwerx.com">SageThumbs</a></li>
+            <li><a href="https://quickdictate.lunarwerx.com">QuickDictate</a></li>
+            <li><a href="https://watcharr.lunarwerx.com">IMDb Watcharr</a></li>
+          </ul>
+        </nav>
+        <p>
+          <a href="https://lunarwerx.com">LunarWerx Studios</a> ·
+          <a href="https://github.com/LunarWerxs/vectormojo">Source on GitHub</a> ·
+          <a href="https://github.com/LunarWerxs/vectormojo/blob/main/LICENSE">MIT License</a>
+        </p>
+      </footer>
     </noscript>
     <script type="module" src="/src/main.ts"></script>
   <!-- LunarWerx Discord badge. Self-contained: no external request, no build step,

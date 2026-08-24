@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://vectormojo.lunarwerx.com">
-  <img src="public/og.png" alt="VectorMojo — turn the file you have into the vector you need" width="880" />
+  <img src="public/og.png" alt="VectorMojo: turn the file you have into the vector you need" width="880" />
 </a>
 
 <p>
@@ -21,6 +21,12 @@
 </div>
 
 ---
+
+VectorMojo is a client-side design-file-to-vector converter that turns PSD,
+PSB, PDF, modern Illustrator AI, EPS, SVG, and PNG/JPEG files into vector SVG,
+then exports SVG, PNG, or PDF. All parsing, tracing, and rendering happen in
+the browser tab via JavaScript and WebAssembly; there is no server and no
+upload step.
 
 Most of the time, you do not need Photoshop. You need the logo trapped inside
 the PSD. Or a clean SVG from a PDF somebody sent three years ago. Or a PNG you
@@ -45,7 +51,7 @@ to the original.
 - **Traces the bitmap when that is the only option.** PNG and JPEG tracing is
   approximate, but it is often enough for a draft, icon, or starting point.
 - **Exports the useful version.** Download SVG, transparent or white-background
-  PNG at exact pixel dimensions, and PDF—or copy the SVG straight into a
+  PNG at exact pixel dimensions, and PDF, or copy the SVG straight into a
   project.
 - **Handles the small annoying details.** Multi-page PDFs, background choice,
   export precision, batch drops, masks, patterns, gradients, and transparent
@@ -130,6 +136,8 @@ The deeper implementation notes live in
 
 ## Run it yourself
 
+### Quick start
+
 You need [Bun](https://bun.sh).
 
 ```sh
@@ -161,6 +169,76 @@ The converter registry is in [`src/lib/registry.ts`](src/lib/registry.ts);
 each format lazy-loads its own engine, so opening the page does not immediately
 pull down the large PDF or EPS runtimes.
 
+## How it compares
+
+VectorMojo's niche is narrow on purpose: get vector geometry out of a design
+file you already have, without leaving the browser tab. Here is how it
+compares to the tools people usually reach for first.
+
+- **Adobe Illustrator's Image Trace** turns raster images into vector paths,
+  but it is a feature of the paid Creative Cloud desktop app, not a
+  standalone converter, and it does not open PSD, EPS, or non-PDF AI files
+  the way VectorMojo does.
+- **Vector Magic** is a longstanding online and desktop raster tracer. Its
+  online version accepts JPG, PNG, BMP, and GIF only (no PSD, PDF, AI, or EPS
+  input), uploads the image to its own servers, and runs on a subscription or
+  pay-per-use plan.
+- **Vectorizer.AI** is a browser-based AI raster tracer for PNG, JPG, GIF,
+  BMP, and WebP (up to 3 MP / 30 MB), with a free interactive preview and
+  paid downloads. Like Vector Magic, it traces bitmaps; it does not open
+  PSD, PDF, AI, or EPS design files directly.
+- **CloudConvert** is a general-purpose file converter spanning 200+ formats.
+  It uploads your file to CloudConvert's own servers, converts it there, and
+  deletes it afterward, rather than never sending it anywhere.
+
+VectorMojo's difference is architectural: it opens PSD/PSB, PDF, AI, and EPS
+design files directly, not just raster images, and the conversion, from
+reading the file to exporting the result, never leaves the browser tab.
+
+## FAQ
+
+**Is VectorMojo free?**
+Yes for most use. The first 10 conversions work as a guest with no account.
+After that, a free Connections account unlocks unlimited conversions. There
+is no paid tier and no usage-based pricing; the guest limit exists to
+prevent abuse, not to hold back a paid feature.
+
+**Is my data sent anywhere?**
+No. VectorMojo has no backend: file reading, parsing, tracing, rendering,
+and export all run in the current browser tab with JavaScript and
+WebAssembly. The only outbound request is a single anonymous visit ping to
+Connections' Studio service (skipped if Do Not Track or Global Privacy
+Control is on), and it never contains a file, filename, or conversion
+result.
+
+**Does VectorMojo work offline?**
+The conversion itself does: once the page is loaded, parsing, tracing, and
+export all run locally and never call out to a server. Loading the page for
+the first time still needs a network connection, unless you clone the
+MIT-licensed source, install dependencies with Bun, and run it yourself;
+after that, no network connection is required.
+
+**What file types does VectorMojo support?**
+As input: PSD, PSB, PDF, modern PDF-compatible Illustrator `.ai` files,
+EPS/PostScript, SVG, PNG, and JPEG. Older, non-PDF Illustrator files are not
+supported. As output: SVG, PDF, and PNG at exact pixel dimensions with a
+transparent or white background, plus clipboard-ready SVG markup you can
+paste straight into a project.
+
+**Can VectorMojo turn a PNG or JPEG into a real vector?**
+It traces the bitmap into SVG paths using a local color trace, and the
+result is explicitly approximate rather than a faithful reconstruction.
+That's usually enough for a draft, an icon, or a starting point to clean up
+by hand, but it will not recover the original vector paths, because a
+raster image never had any.
+
+**What are the system requirements?**
+A modern desktop or mobile browser with JavaScript and WebAssembly support;
+there is nothing else to install for the hosted app. No account, GPU, or
+special hardware is required. Large PSD files or high-resolution bitmap
+traces use more memory and take longer, because everything runs in the tab
+instead of on a server.
+
 ## License
 
 VectorMojo's original source is [MIT](LICENSE) © VectorMojo contributors. Do
@@ -176,4 +254,6 @@ license texts and a corresponding-source pointer. See
   <a href="https://vectormojo.lunarwerx.com"><img src="public/vectormojo-mark.svg" alt="VectorMojo" width="48" /></a>
   <br /><br />
   <sub>Built by <a href="https://lunarwerx.com"><b>LunarWerxs</b></a> · Deployed on Cloudflare Pages</sub>
+  <br /><br />
+  <sub>Also from LunarWerxs: <a href="https://repoyeti.com">RepoYeti</a> · <a href="https://sagethumbs.lunarwerx.com">SageThumbs</a> · <a href="https://quickdictate.lunarwerx.com">QuickDictate</a></sub>
 </div>

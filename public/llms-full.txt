@@ -1,0 +1,124 @@
+# VectorMojo - full brief
+
+> Convert PSD, PSB, PDF, Illustrator AI, EPS, SVG, PNG, and JPEG design files into clean vector SVGs, entirely in your browser. No upload, no server. Version 0.1.0. MIT licensed.
+
+## What it is
+
+VectorMojo is the escape hatch for a design file you have but cannot use: the logo trapped
+inside a PSD, a clean SVG pulled out of a PDF someone sent years ago, or a PNG turned into
+something editable before lunch. There is no VectorMojo backend. File reading, parsing,
+tracing, rendering, and export all happen in the current browser tab with JavaScript and
+WebAssembly; closing the tab closes the workbench, and VectorMojo does not upload or store
+the files it is given.
+
+## Who it's for
+
+Anyone who needs the vector geometry trapped inside a design file, without installing
+software, uploading the file anywhere, or paying for a subscription: designers rescuing old
+artwork, developers cleaning up SVG icon sets, and anyone who just needs a quick trace of a
+PNG logo into something scalable.
+
+## Every feature
+
+- Rescues vector artwork from PSD/PSB, PDF, modern Illustrator (`.ai`, PDF-compatible only;
+  older non-PDF AI files are not supported), and EPS/PostScript (via local Ghostscript and
+  MuPDF WebAssembly).
+- Opens, sanitizes, normalizes, rounds, prettifies, or minifies SVG files you already have.
+- Traces PNG and JPEG bitmaps into approximate SVG paths with a local color trace, explicitly
+  approximate, but often enough for a draft, icon, or starting point.
+- Exports SVG, transparent or white-background PNG at exact pixel dimensions, or PDF, or
+  copies clipboard-ready SVG markup straight into a project.
+- Handles multi-page PDFs, background choice, export precision, batch drops, masks, patterns,
+  gradients, and transparent previews.
+- Ships a small, neutral sample PSD ("No file handy? Try the sample") so the full conversion
+  and export flow can be seen without providing your own artwork.
+- 8 input formats, 4 export options, built on 11 open-source and in-house components.
+
+## Install / how to use
+
+No install. Open https://vectormojo.lunarwerx.com/ and drop a file, that is the whole setup.
+To self-host or modify it:
+
+```
+git clone https://github.com/LunarWerxs/vectormojo.git
+cd vectormojo
+bun install
+bun run dev
+```
+
+Requires Bun. `bun test` runs the conversion + pixel-diff regression suite; `bun run build`
+produces the audited production bundle in `dist/`.
+
+## Pricing
+
+Free. The first 10 conversions work as a guest, with no account at all. A free Connections
+account unlocks unlimited conversions after that. There is no paid tier, no subscription, and
+no credit card required at any point. See /pricing.md for the machine-readable breakdown.
+
+## Privacy / architecture
+
+There is no VectorMojo backend. File reading, parsing, tracing, rendering, and export all
+happen in the current browser tab with JavaScript and WebAssembly. The production build is a
+collection of static files served from Cloudflare Pages, with no database, upload bucket, or
+processing server. Connections supplies optional account authentication through its public,
+PKCE-only browser SDK; only the sign-in session leaves the tab, the artwork never does.
+
+The one exception: once per browser session, VectorMojo sends a single anonymous visit ping
+to Connections' Studio service so usage can be measured. It carries a random visitor id, the
+app version, and (if applicable) the referring site's hostname only. It never includes a
+file, filename, or conversion result, is skipped on localhost, and is skipped entirely when
+Do Not Track or Global Privacy Control is enabled.
+
+## FAQ
+
+**Is VectorMojo free?** Yes. 10 guest conversions, then a free Connections account for
+unlimited; no paid tier, no subscription, no card required.
+
+**Does it upload my file?** No. No backend; reading, parsing, tracing, rendering, and export
+all run locally in JavaScript and WebAssembly.
+
+**What formats does it support?** In: PSD, PSB, PDF, PDF-compatible Illustrator `.ai`,
+EPS/PostScript, SVG. Out: SVG, transparent/white PNG, PDF, or clipboard SVG. Also traces PNG
+and JPEG bitmaps.
+
+**How does it differ from Illustrator or online converters?** Illustrator is paid desktop
+software. Online converters upload your file to a server. VectorMojo converts and traces
+entirely in the browser tab via WebAssembly.
+
+**Can it turn a PNG into a real vector?** It traces PNG/JPEG into approximate SVG paths via a
+local color trace, an approximation, but often enough for a draft, icon, or starting point.
+
+**Do I need an account?** No, 10 guest conversions require none. An account only unlocks the
+unlimited tier.
+
+**Is it open source?** Yes, MIT (github.com/LunarWerxs/vectormojo). The bundle also includes
+AGPL-licensed MuPDF.js and Ghostscript WASM; license texts ship with every public build.
+
+**Does it work on Mac, Windows, or Linux?** Yes, any OS with a modern browser supporting
+JavaScript and WebAssembly.
+
+## Limitations
+
+- Older, non-PDF Illustrator `.ai` files are not supported; only modern PDF-compatible `.ai`.
+- PNG/JPEG-to-SVG tracing is an approximation, not a faithful vector reconstruction; a PSD can
+  produce a useful SVG without every object becoming a perfectly editable Bezier path where
+  the source mixes pixels, fonts, smart objects, and blend modes in one layer stack.
+- Unlimited conversions require a free Connections account after the 10-conversion guest
+  allowance.
+
+## Built with
+
+Bun, Vue 3, Vite, Tailwind CSS 4, Connections, ag-psd, MuPDF.js, Ghostscript WASM, SVGO,
+ImageTracer.js, jsPDF.
+
+## Links
+
+- Home: https://vectormojo.lunarwerx.com/
+- Source code: https://github.com/LunarWerxs/vectormojo
+- License: https://github.com/LunarWerxs/vectormojo/blob/main/LICENSE
+- Third-party notices: https://vectormojo.lunarwerx.com/THIRD_PARTY_NOTICES.txt
+- Pricing (machine-readable): https://vectormojo.lunarwerx.com/pricing.md
+- Summary brief: https://vectormojo.lunarwerx.com/llms.txt
+- Publisher: https://lunarwerx.com/ (LunarWerx Studios)
+
+Last updated: 2026-08-23
