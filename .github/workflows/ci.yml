@@ -46,7 +46,19 @@ jobs:
         run: |
           if [ -z "$TOKEN" ] || [ -z "$ACCOUNT" ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID not set, skipping deploy. See OWNER_ACTIONS.md."
+            # A ::warning, not a ::notice, and it says the consequence out loud.
+            # A notice is easy to miss in a green run, and this job has been
+            # skipping the deploy and reporting success since the secrets were
+            # never added, so every push to main since then has looked shipped
+            # and shipped nothing. A green that means "deployed nothing" is the
+            # one failure mode worse than a red.
+            echo "::warning::NOT DEPLOYED. CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are not set, so this push did NOT reach vectormojo.lunarwerx.com. The site is still serving the previous deployment. See OWNER_ACTIONS.md."
+            {
+              echo "### ⚠️ Deploy skipped, site NOT updated"
+              echo ""
+              echo "\`CLOUDFLARE_API_TOKEN\` / \`CLOUDFLARE_ACCOUNT_ID\` are not set on this repository."
+              echo "The build passed, but nothing was published, so vectormojo.lunarwerx.com still serves the previous deployment."
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           # No /user/tokens/verify precheck here either - see the sibling repo:
