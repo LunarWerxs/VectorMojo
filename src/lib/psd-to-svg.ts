@@ -809,6 +809,39 @@ async function emitNode(
 }
 
 /**
+ * Emit a base layer's run of clipped layers, either clipped to the base's
+ * vector geometry or unclipped (with a warning) when the base has none.
+ */
+async function emitClippedRun(
+  layer: Layer,
+  run: Layer[],
+  out: string[],
+  em: Emitter,
+  warnings: string[],
+  counts: Counts,
+): Promise<void> {
+  const geo = await collectClipGeometry(layer, em, warnings)
+  if (!geo.length) {
+    warnings.push(
+      `clipping base "${layer.name ?? '?'}" has no vector path; clipped layer(s) rendered unclipped`,
+    )
+    for (const l of run) await emitNode(l, out, em, warnings, counts)
+    return
+  }
+  const id = `clip${em.n++}`
+  em.defs.push(
+    `<clipPath id="${id}">` +
+      geo.map((g) => `<path d="${g.d}"${g.evenOdd ? ' clip-rule="evenodd"' : ''}/>`).join('') +
+      `</clipPath>`,
+  )
+  const inner: string[] = []
+  for (const l of run) await emitNode(l, inner, em, warnings, counts)
+  out.push(`  <g clip-path="url(#${id})">`)
+  out.push(...inner)
+  out.push('  </g>')
+}
+
+/**
  * Walk one children array (bottom-to-top). Runs of `clipping: true` layers are
  * clipped to the nearest non-clipping layer before them.
  */
@@ -846,27 +879,7 @@ async function walk(
     await emitNode(layer, out, em, warnings, counts)
 
     if (run.length) {
-      const geo = await collectClipGeometry(layer, em, warnings)
-      if (!geo.length) {
-        warnings.push(
-          `clipping base "${layer.name ?? '?'}" has no vector path; clipped layer(s) rendered unclipped`,
-        )
-        for (const l of run) await emitNode(l, out, em, warnings, counts)
-      } else {
-        const id = `clip${em.n++}`
-        em.defs.push(
-          `<clipPath id="${id}">` +
-            geo
-              .map((g) => `<path d="${g.d}"${g.evenOdd ? ' clip-rule="evenodd"' : ''}/>`)
-              .join('') +
-            `</clipPath>`,
-        )
-        const inner: string[] = []
-        for (const l of run) await emitNode(l, inner, em, warnings, counts)
-        out.push(`  <g clip-path="url(#${id})">`)
-        out.push(...inner)
-        out.push('  </g>')
-      }
+      await emitClippedRun(layer, run, out, em, warnings, counts)
     }
     i = j
   }
