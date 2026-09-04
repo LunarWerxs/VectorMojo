@@ -6,6 +6,7 @@ import {
   type ConnectUser,
 } from './lib/connections'
 import { detect, type Detected } from './lib/detect'
+import { sendEvent } from './lib/analytics'
 import {
   GUEST_CONVERSION_LIMIT,
   guestConversionsRemaining,
@@ -182,6 +183,7 @@ async function addFiles(files: FileList | File[]) {
       guestConversionCount.value >= GUEST_CONVERSION_LIMIT
     ) {
       pendingFiles.value.push(...incoming.slice(index))
+      sendEvent({ name: 'guest_quota_hit' })
       openAccountDialog()
       break
     }
@@ -216,6 +218,7 @@ async function addFiles(files: FileList | File[]) {
       applyResult(item, res)
       if ((item.pages ?? 0) > 1) item.source = bytes
       item.status = 'done'
+      sendEvent({ name: 'convert', format: item.detected.format })
       if (!connectionsUser.value) {
         guestConversionCount.value = recordGuestConversion()
       }
@@ -285,6 +288,7 @@ async function downloadSvg(item: Item) {
   try {
     item.error = undefined
     download(await exportSvg(item), baseName(item.name) + '.svg')
+    sendEvent({ name: 'export', kind: 'svg' })
   } catch (err) {
     item.error = 'SVG export failed: ' + (err instanceof Error ? err.message : String(err))
   }
@@ -305,6 +309,7 @@ async function downloadPng(item: Item) {
       `${baseName(item.name)}-${Math.round(item.pngWidth)}x${Math.round(item.pngHeight)}.png`,
       'image/png',
     )
+    sendEvent({ name: 'export', kind: 'png' })
   } catch (err) {
     item.error = 'PNG export failed: ' + (err instanceof Error ? err.message : String(err))
   }
@@ -316,6 +321,7 @@ async function downloadPdf(item: Item) {
     item.error = undefined
     const blob = await svgToPdf(await exportSvg(item))
     download(blob, baseName(item.name) + '.pdf', 'application/pdf')
+    sendEvent({ name: 'export', kind: 'pdf' })
   } catch (err) {
     item.error = 'PDF export failed: ' + (err instanceof Error ? err.message : String(err))
   }
@@ -339,6 +345,7 @@ async function copySvg(item: Item) {
       if (!copied) throw new Error('Clipboard access is unavailable.')
     }
     item.copied = true
+    sendEvent({ name: 'export', kind: 'copy' })
     setTimeout(() => {
       item.copied = false
     }, 1500)

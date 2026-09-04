@@ -22,6 +22,70 @@ function isLocalHost(hostname: string): boolean {
   )
 }
 
+// Named conversion events (adapted from PostHog's manual-event-tracking idea,
+// posthog-js, Apache-2.0, (c) 2015 Mixpanel, Inc., (c) PostHog Inc. - not
+// vendored code, just the "named events on an opt-out foundation" pattern).
+// Adapted for VectorMojo: reuses the same visitor id, DNT/GPC honoring, and
+// no-cors fire-and-forget delivery as sendVisitPing() above, extended with an
+// `event` name and a couple of narrow, enum-shaped fields. VectorMojo's core
+// promise is that files never leave the device, so an event may only ever
+// carry a closed set of small identifiers (format tags, export kind) -
+// never a file name, its bytes, or its pixel/geometry dimensions.
+export type AnalyticsEvent =
+  | { name: 'convert'; format: string }
+  | { name: 'guest_quota_hit' }
+  | { name: 'export'; kind: 'svg' | 'png' | 'pdf' | 'copy' }
+
+/**
+ * Pure mapping from an AnalyticsEvent to the extra query fields it sends,
+ * beyond the shared `iid`/`v`. Kept separate from sendEvent() below so the
+ * exact, closed set of fields per event (and that nothing else sneaks in)
+ * can be asserted without a browser/DOM environment.
+ */
+export function eventFields(event: AnalyticsEvent): Record<string, string> {
+  switch (event.name) {
+    case 'convert':
+      return { event: event.name, format: event.format }
+    case 'export':
+      return { event: event.name, format: event.kind }
+    case 'guest_quota_hit':
+      return { event: event.name }
+  }
+}
+
+/**
+ * Fire a single named conversion event on the same privacy-respecting
+ * foundation as sendVisitPing(): skipped under DNT/GPC or on localhost, best
+ * effort (a delivery failure never surfaces to the app), and never carrying
+ * anything beyond the fixed set of fields eventFields() returns.
+ */
+export function sendEvent(event: AnalyticsEvent): void {
+  try {
+    const nav = navigator as Navigator & { globalPrivacyControl?: boolean }
+    if (nav.doNotTrack === '1' || nav.globalPrivacyControl) return
+    if (isLocalHost(window.location.hostname)) return
+
+    // Unlike sendVisitPing()'s "new visit" bookkeeping, a named event has
+    // nothing that depends on delivery succeeding first, so the id can be
+    // created and persisted immediately.
+    let id: string
+    try {
+      id = localStorage.getItem(ID_KEY) ?? crypto.randomUUID()
+      localStorage.setItem(ID_KEY, id)
+    } catch {
+      return // no durable id available: skip rather than send an unlinkable event
+    }
+
+    const params = new URLSearchParams({ iid: id, v: __APP_VERSION__, ...eventFields(event) })
+
+    fetch(`${PING_URL}?${params.toString()}`, { mode: 'no-cors', keepalive: true }).catch(() => {
+      // best-effort, no retries
+    })
+  } catch {
+    // storage/fetch unavailable (private mode, extensions): skip silently
+  }
+}
+
 export function sendVisitPing(): void {
   try {
     const nav = navigator as Navigator & { globalPrivacyControl?: boolean }
