@@ -101,12 +101,13 @@ PKCE-only browser SDK; only the sign-in session leaves the tab. The artwork
 never does. The quota and authentication decisions are documented in
 [`docs/CONNECTIONS.md`](docs/CONNECTIONS.md).
 
-### The one network call
+### What leaves the tab
 
 VectorMojo's "100% local compute" promise is about the files you convert, and
 that part is absolute: file reading, parsing, tracing, and export never leave
-the tab. The app does make exactly one outbound call on its own, and it is
-worth stating plainly rather than leaving implicit.
+the tab. The app does make outbound calls of its own, all to the same
+Connections Studio endpoint, and it is worth stating plainly rather than
+leaving implicit.
 
 Once per browser session, VectorMojo sends a single anonymous visit ping to
 Connections' Studio service (`studio.connections.icu/v1/app/vectormojo/latest`)
@@ -115,10 +116,17 @@ stored in `localStorage` (not tied to any account or file you touch), the app
 version, and, if you arrived from a link, the referring site's hostname only -
 never the full URL. What the server derives from the request itself and
 stores alongside that: coarse geo (country, region, city, timezone), network
-ASN, locale, and a truncated user agent. It never logs an IP address. The
-ping is skipped entirely when Do Not Track or Global Privacy Control is
-enabled, and skipped on localhost. No file, filename, or conversion result is
-ever part of it. The source is [`src/lib/analytics.ts`](src/lib/analytics.ts).
+ASN, locale, and a truncated user agent. It never logs an IP address.
+
+On top of that visit ping, a small number of named events fire during use, on
+the same endpoint and the same visitor id: which converter ran (a format tag
+like `psd` or `pdf`, never a filename), which export format you picked
+(`svg`/`png`/`pdf`/`copy`), and when a guest hits the 10-conversion limit.
+Every event is one of those three narrow, enum-shaped kinds - never a
+filename, file bytes, or pixel/geometry dimensions. All of it, ping and
+events alike, is skipped entirely when Do Not Track or Global Privacy Control
+is enabled, and skipped on localhost. The source is
+[`src/lib/analytics.ts`](src/lib/analytics.ts).
 
 ## A realistic note about fidelity
 
@@ -206,10 +214,12 @@ prevent abuse, not to hold back a paid feature.
 **Is my data sent anywhere?**
 No. VectorMojo has no backend: file reading, parsing, tracing, rendering,
 and export all run in the current browser tab with JavaScript and
-WebAssembly. The only outbound request is a single anonymous visit ping to
-Connections' Studio service (skipped if Do Not Track or Global Privacy
-Control is on), and it never contains a file, filename, or conversion
-result.
+WebAssembly. The only outbound requests are an anonymous visit ping and a
+handful of named usage events (which converter ran, which export format you
+picked, hitting the guest limit) to Connections' Studio service, all skipped
+if Do Not Track or Global Privacy Control is on, and none of it ever
+contains a file, filename, or conversion result. See
+[What leaves the tab](#what-leaves-the-tab) above.
 
 **Does VectorMojo work offline?**
 The conversion itself does: once the page is loaded, parsing, tracing, and
