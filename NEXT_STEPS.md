@@ -1,6 +1,6 @@
 # VectorMojo, next steps
 
-Status as of 2026-07-23: **v2 is live** at
+Status as of 2026-09-05 (first written 2026-07-23): **v2 is live** at
 <https://vectormojo.lunarwerx.com>, deployed to Cloudflare Pages from audited commit
 `575d6bd`. The source repository is public under MIT for VectorMojo's original
 code, with the AGPL runtime components disclosed separately. This file tracks
@@ -10,17 +10,24 @@ everything not yet done, roughly in priority order.
 
 - [x] **Public v2 deployment.** The production Pages deployment is built from
   the pushed `main` commit and includes source, license, and third-party notices.
-- [ ] **Custom domain** (e.g. `vectormojo.lunarwerx.com`). Cloudflare dashboard
-  to Pages to vectormojo to Custom domains. Needs a DNS record, so it is an
-  owner action. ~5 min.
-- [ ] **Git-triggered builds (optional).** Right now deploys are manual:
-  `bun run build` then `bunx wrangler pages deploy dist --project-name vectormojo`.
-  To auto-deploy on push, connect the GitHub repo in the CF Pages project. The
-  Bun-detection blocker is removed: `package.json` now has an `engines` field
-  (`bun >=1.3.14`, `node >=20`) and a `.node-version` file, so the CF build
-  image has a deterministic version to pick up even from the text `bun.lock`.
-  What's left is the owner-side dashboard connection; see `OWNER_ACTIONS.md`
-  for the exact click path and build settings to enter.
+- [x] **Custom domain.** `vectormojo.lunarwerx.com` is live with an active
+  certificate (done 2026-08-02 over the API: the custom domain was added to the
+  Pages project and the zone got a proxied `CNAME vectormojo -> vectormojo.pages.dev`).
+  The old `vectormojo.pages.dev` still serves the same pages rather than
+  redirecting; the canonical tag names the custom domain, so this is untidy
+  rather than harmful.
+- [ ] **Git-triggered builds: two repository secrets away.** Cloudflare's own
+  Git integration cannot be turned on for this project (it was created as
+  Direct Upload and the API refuses to change its `source`; recreating it would
+  drop the deployment history and risk the `vectormojo.pages.dev` name). So the
+  deploy lives in `.github/workflows/ci.yml` as a `deploy` job that runs after
+  the tests on every push to `main`. It skips itself with a loud
+  "NOT DEPLOYED" notice until two repository secrets exist:
+  `CLOUDFLARE_API_TOKEN` (a token scoped to this account only, Workers and
+  Pages edit) and `CLOUDFLARE_ACCOUNT_ID`. The vaulted account-wide token must
+  not be pasted in because this repo is public. Until then, ship by hand:
+  `bun run build` then `wrangler pages deploy dist --project-name=vectormojo --branch=main`.
+  See `OWNER_ACTIONS.md` for the exact token scope and steps.
 - [x] **Repo visibility.** Public at <https://github.com/LunarWerxs/vectormojo>
   with MIT project licensing, a security policy, secret scanning, push
   protection, dependency alerts, automated fixes, and private vulnerability
