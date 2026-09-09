@@ -16,6 +16,7 @@
   <a href="https://github.com/LunarWerxs/vectormojo/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/LunarWerxs/vectormojo/ci.yml?branch=main&style=flat-square&label=CI" /></a>
   <img alt="Runs locally in your browser" src="https://img.shields.io/badge/files-stay%20in%20your%20browser-06b6d4?style=flat-square" />
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-22c55e?style=flat-square" /></a>
+  <a href="https://discord.gg/PsWpeNUzhk"><img alt="Discord" src="https://img.shields.io/badge/Discord-join_the_community-5865F2?style=flat-square&logo=discord&logoColor=white" /></a>
 </p>
 
 </div>
