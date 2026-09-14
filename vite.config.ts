@@ -21,8 +21,9 @@ export default defineConfig({
   optimizeDeps: {
     // Pre-bundling rewrites mupdf-wasm.js's import.meta.url and makes the
     // sibling .wasm request point at Vite's HTML fallback.
+    // Vite 8 (Rolldown): dep pre-bundling now follows build.target above,
+    // so the old esbuildOptions.target override is no longer needed.
     exclude: ['mupdf'],
-    esbuildOptions: { target: 'esnext' },
   },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),

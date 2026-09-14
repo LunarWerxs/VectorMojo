@@ -1,4 +1,4 @@
-import { optimize } from 'svgo/dist/svgo.browser.js'
+import { optimize } from 'svgo/browser'
 import type { ToSvgResult } from './registry'
 import { svgSize } from './outputs'
 
@@ -23,7 +23,6 @@ export function formatSvg(source: string, precision = 2, minify = true): string 
         name: 'preset-default',
         params: {
           overrides: {
-            removeViewBox: false,
             cleanupNumericValues: { floatPrecision },
             convertPathData: { floatPrecision },
             convertTransform: { floatPrecision },
@@ -31,7 +30,8 @@ export function formatSvg(source: string, precision = 2, minify = true): string 
         },
       },
       // Local SVG previews must not retain executable script or event handlers.
-      'removeScriptElement',
+      // svgo v4: removeScriptElement was renamed to removeScripts.
+      'removeScripts',
     ],
   }).data
 }
