@@ -19,29 +19,29 @@
     "probe": "bun run tools/probe-agpsd.ts"
   },
   "dependencies": {
-    "@cnct/connect": "^1.3.0",
+    "@cnct/connect": "^1.5.1",
     "@jspawn/ghostscript-wasm": "0.0.2",
-    "ag-psd": "^31.0.0",
+    "ag-psd": "^31.0.2",
     "imagetracerjs": "1.2.6",
-    "jspdf": "^4.0.0",
-    "mupdf": "^1.28.0",
-    "pako": "^2.1.0",
+    "jspdf": "^4.2.1",
+    "mupdf": "^1.28.1",
+    "pako": "^2.2.0",
     "polygon-clipping": "^0.15.7",
-    "svg2pdf.js": "^2.7.0",
-    "vue": "^3.5.13"
+    "svg2pdf.js": "^2.8.1",
+    "vue": "^3.5.42"
   },
   "devDependencies": {
     "@resvg/resvg-js": "2.6.2",
-    "@tailwindcss/vite": "^4.0.0",
-    "@types/node": "^22.10.0",
-    "@types/pako": "^2.0.3",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^22.20.2",
+    "@types/pako": "^2.0.4",
     "@types/pngjs": "6.0.5",
-    "@vitejs/plugin-vue": "^5.2.1",
+    "@vitejs/plugin-vue": "^5.2.4",
     "pngjs": "7.0.0",
-    "svgo": "^3.3.2",
-    "tailwindcss": "^4.0.0",
-    "typescript": "^5.7.3",
-    "vite": "^6.0.7",
-    "vue-tsc": "^2.2.0"
+    "svgo": "^3.3.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.3",
+    "vue-tsc": "^2.2.12"
   }
 }
