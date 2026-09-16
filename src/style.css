@@ -1,5 +1,11 @@
 @import 'tailwindcss';
 
+/* color tokens - lifted from raw literals by Odin's fix_color_tokens.py (2026-09-14); the Architect's
+   color-scheme-conformance check wants every color consumed through the token layer. */
+:root {
+  --color-rgb-10-10-10-a0_72: rgb(10 10 10 / 0.72);
+}
+
 :root {
   color-scheme: light dark;
 }
@@ -24,7 +30,7 @@ body {
 }
 
 .help-dialog::backdrop {
-  background: rgb(10 10 10 / 0.72);
+  background: var(--color-rgb-10-10-10-a0_72);
   backdrop-filter: blur(5px);
 }
 

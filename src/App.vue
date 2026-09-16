@@ -460,7 +460,7 @@ const accountName = computed(() =>
         </div>
         <p
           v-if="connectionsError"
-          class="mt-3 text-right text-xs text-red-500"
+          class="mt-3 text-end text-xs text-red-500"
           role="alert"
         >
           {{ connectionsError }}
@@ -691,7 +691,7 @@ const accountName = computed(() =>
                     @input="updatePngHeight(item, $event)"
                   />
                   <span>px</span>
-                  <label class="ml-1 flex items-center gap-1">
+                  <label class="ms-1 flex items-center gap-1">
                     <input v-model="item.lockPngAspect" type="checkbox" />
                     Lock ratio
                   </label>
