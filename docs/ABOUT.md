@@ -54,36 +54,36 @@ edit the dossier, not this block. Everything ABOVE the marker is yours.
 
 ### Features
 
-18 recorded - 18 shipped, 0 partial, 0 planned. Each `path:line` is where the feature is DEFINED, checked by `odin codex check`.
+18 recorded - 18 shipped, 0 partial, 0 planned. Each path is where the feature is DEFINED; the exact lines live in the Codex entry, which `odin codex check` re-verifies and repairs.
 
 **Shipped**
 
-- **PSD/PSB to SVG** _(free)_ - Converts Photoshop PSD/PSB shape layers, gradients, patterns, and masks into real SVG vector geometry, embedding raster/text/smart-object appearance as PNG where no vector form exists. - `src/lib/psd-to-svg.ts:888`, `src/lib/registry.ts:25`
-- **PDF to SVG (multi-page)** _(free)_ - Turns a selected page of a PDF into real SVG geometry via MuPDF.js, with a page picker for multi-page documents. - `src/lib/pdf-to-svg.ts:26`, `src/App.vue:232`
-- **Modern Illustrator (.ai) support** _(free)_ - Opens PDF-compatible Illustrator .ai files through the same PDF pipeline; older non-PDF .ai files are detected but explicitly unsupported. - `src/lib/detect.ts:29`, `src/lib/registry.ts:37`
-- **EPS/PostScript to SVG** _(free)_ - Converts EPS/PostScript files to SVG by rendering to PDF through Ghostscript WASM, then through the PDF-to-SVG pipeline. - `src/lib/eps-to-svg.ts:10`
-- **SVG cleanup and normalization** _(free)_ - Opens an existing SVG, strips executable content, and normalizes/rounds/prettifies or minifies the markup. - `src/lib/svg-to-svg.ts:39`, `src/lib/outputs.ts:9`
-- **PNG/JPEG bitmap tracing** _(free)_ - Traces a raster PNG/JPEG into approximate SVG paths via a local color trace (ImageTracer.js) - a draft/icon starting point, not path reconstruction. - `src/lib/raster-to-svg.ts:30`
-- **Format auto-detection** - Identifies the dropped file's real format from its magic bytes rather than trusting the filename extension, and flags unsupported formats before conversion is attempted. - `src/lib/detect.ts:19`
-- **Multi-format export** _(free)_ - Exports the converted SVG as SVG, PNG (custom pixel width/height, transparent or white background), or PDF, or copies the SVG markup to the clipboard. - `src/App.vue:287`, `src/App.vue:297`, `src/App.vue:318`, `src/App.vue:330`
-- **PNG export sizing and background** _(free)_ - Lets the user set exact PNG output width/height and choose a transparent or solid-white background before download. - `src/App.vue:357`, `src/lib/outputs.ts:88`
-- **Drag-and-drop batch intake** _(free)_ - Drop one file or a whole batch onto the workbench (or use the file picker); each becomes its own item in the conversion queue. - `src/App.vue:258`, `src/App.vue:176`
-- **Bundled sample file** _(free)_ - "No file handy? Try the sample" runs the full convert/export flow against a small neutral PSD shipped with the app, with no artwork of the user's own required. - `src/App.vue:269`, `tools/generate-sample.ts:16`
-- **In-app usage guide** _(free)_ - A "What can I do here?" dialog explains the drop/convert/export workflow, what each format is good at, and where conversion is necessarily approximate. - `src/App.vue:73`, `src/App.vue:455`
-- **Guest conversion quota** _(free)_ - Unauthenticated visitors get 10 successful conversions, counted in localStorage; failed/unsupported conversions don't consume an allowance. - `src/lib/guest-usage.ts:1`, `src/lib/guest-usage.ts:36`, `src/App.vue:183`
-- **Connections sign-in for unlimited use** _(free)_ - A free Connections account (OAuth Authorization Code + PKCE via a cross-origin sign-in dialog) removes the 10-conversion guest cap; artwork is never sent to Connections, only the sign-in session. - `src/lib/connections.ts:6`, `src/App.vue:117`
-- **Anonymous visit ping** - Sends one privacy-conscious visit ping per session to Connections' Studio service (random localStorage id, app version, referrer hostname only) to measure usage; skipped under Do Not Track/GPC or on localhost, and never carries file content. - `src/lib/analytics.ts:89`
-- **Conversion fidelity warnings** _(free)_ - When a source file uses a feature that can't be represented reliably (stale fills under a stroke gradient, unsupported effects, approximate tracing), the result carries a visible warning instead of failing silently or misrepresenting the output. - `src/lib/psd-to-svg.ts:889`, `src/lib/raster-to-svg.ts:56`
-- **Public-sample content guard** - The production build refuses to continue if anything other than the one reviewed neutral PSD is present in public/samples/, even if Git-ignored, so private scratch artwork can never ship in the bundle. - `tools/check-public-assets.ts:17`
-- **Named usage-event tracking** - Fires a handful of narrow, enum-shaped named events (which converter ran, which export format was picked, hitting the guest quota) on the same privacy-respecting foundation as the visit ping - same visitor id, DNT/GPC honored, best-effort delivery - and never a filename, file bytes, or pixel/geometry dimensions. - `src/lib/analytics.ts:34`, `src/lib/analytics.ts:62`
+- **PSD/PSB to SVG** _(free)_ - Converts Photoshop PSD/PSB shape layers, gradients, patterns, and masks into real SVG vector geometry, embedding raster/text/smart-object appearance as PNG where no vector form exists. - `src/lib/psd-to-svg.ts`, `src/lib/registry.ts`
+- **PDF to SVG (multi-page)** _(free)_ - Turns a selected page of a PDF into real SVG geometry via MuPDF.js, with a page picker for multi-page documents. - `src/lib/pdf-to-svg.ts`, `src/App.vue`
+- **Modern Illustrator (.ai) support** _(free)_ - Opens PDF-compatible Illustrator .ai files through the same PDF pipeline; older non-PDF .ai files are detected but explicitly unsupported. - `src/lib/detect.ts`, `src/lib/registry.ts`
+- **EPS/PostScript to SVG** _(free)_ - Converts EPS/PostScript files to SVG by rendering to PDF through Ghostscript WASM, then through the PDF-to-SVG pipeline. - `src/lib/eps-to-svg.ts`
+- **SVG cleanup and normalization** _(free)_ - Opens an existing SVG, strips executable content, and normalizes/rounds/prettifies or minifies the markup. - `src/lib/svg-to-svg.ts`, `src/lib/outputs.ts`
+- **PNG/JPEG bitmap tracing** _(free)_ - Traces a raster PNG/JPEG into approximate SVG paths via a local color trace (ImageTracer.js) - a draft/icon starting point, not path reconstruction. - `src/lib/raster-to-svg.ts`
+- **Format auto-detection** - Identifies the dropped file's real format from its magic bytes rather than trusting the filename extension, and flags unsupported formats before conversion is attempted. - `src/lib/detect.ts`
+- **Multi-format export** _(free)_ - Exports the converted SVG as SVG, PNG (custom pixel width/height, transparent or white background), or PDF, or copies the SVG markup to the clipboard. - `src/App.vue`
+- **PNG export sizing and background** _(free)_ - Lets the user set exact PNG output width/height and choose a transparent or solid-white background before download. - `src/App.vue`, `src/lib/outputs.ts`
+- **Drag-and-drop batch intake** _(free)_ - Drop one file or a whole batch onto the workbench (or use the file picker); each becomes its own item in the conversion queue. - `src/App.vue`
+- **Bundled sample file** _(free)_ - "No file handy? Try the sample" runs the full convert/export flow against a small neutral PSD shipped with the app, with no artwork of the user's own required. - `src/App.vue`, `tools/generate-sample.ts`
+- **In-app usage guide** _(free)_ - A "What can I do here?" dialog explains the drop/convert/export workflow, what each format is good at, and where conversion is necessarily approximate. - `src/App.vue`
+- **Guest conversion quota** _(free)_ - Unauthenticated visitors get 10 successful conversions, counted in localStorage; failed/unsupported conversions don't consume an allowance. - `src/lib/guest-usage.ts`, `src/App.vue`
+- **Connections sign-in for unlimited use** _(free)_ - A free Connections account (OAuth Authorization Code + PKCE via a cross-origin sign-in dialog) removes the 10-conversion guest cap; artwork is never sent to Connections, only the sign-in session. - `src/lib/connections.ts`, `src/App.vue`
+- **Anonymous visit ping** - Sends one privacy-conscious visit ping per session to Connections' Studio service (random localStorage id, app version, referrer hostname only) to measure usage; skipped under Do Not Track/GPC or on localhost, and never carries file content. - `src/lib/analytics.ts`
+- **Conversion fidelity warnings** _(free)_ - When a source file uses a feature that can't be represented reliably (stale fills under a stroke gradient, unsupported effects, approximate tracing), the result carries a visible warning instead of failing silently or misrepresenting the output. - `src/lib/psd-to-svg.ts`, `src/lib/raster-to-svg.ts`
+- **Public-sample content guard** - The production build refuses to continue if anything other than the one reviewed neutral PSD is present in public/samples/, even if Git-ignored, so private scratch artwork can never ship in the bundle. - `tools/check-public-assets.ts`
+- **Named usage-event tracking** - Fires a handful of narrow, enum-shaped named events (which converter ran, which export format was picked, hitting the guest quota) on the same privacy-respecting foundation as the visit ping - same visitor id, DNT/GPC honored, best-effort delivery - and never a filename, file bytes, or pixel/geometry dimensions. - `src/lib/analytics.ts`
 
 ### Where to add a new one
 
-- **a new input file-format converter** - add the format to the Format union and detect() in src/lib/detect.ts, implement a ToSvgConverter in a new src/lib/<format>-to-svg.ts, register it in the converters map in src/lib/registry.ts, and add a matching tools/<format>-to-svg.test.ts anchors: `src/lib/detect.ts:3`, `src/lib/registry.ts:24`
-- **a new export/output format from the converted SVG** - add a function to src/lib/outputs.ts (mirroring svgToPng/svgToPdf) and wire a button + handler into the export row in src/App.vue anchors: `src/lib/outputs.ts:106`, `src/App.vue:703`
-- **a new conversion/pixel-regression test** - add a *.test.ts under tools/ following the resvg-render-and-pixel-compare pattern against a generated fixture; bun test picks it up automatically anchors: `tools/psd-pixel-regression.test.ts:7`
-- **a rule about what may ship in public/samples/** - extend the approved-samples list checked by tools/check-public-assets.ts, which the production build (`bun run build`) runs before bundling anchors: `tools/check-public-assets.ts:6`
-- **a new CI or deploy step** - add a step to the `test` job in .github/workflows/ci.yml; the `deploy` job (Cloudflare Pages via wrangler-action) runs only after `test` passes on a push to main, and is itself guarded so a missing Cloudflare token skips deploy with a loud CI warning rather than failing red anchors: `.github/workflows/ci.yml:11`, `.github/workflows/ci.yml:32`
+- **a new input file-format converter** - add the format to the Format union and detect() in src/lib/detect.ts, implement a ToSvgConverter in a new src/lib/<format>-to-svg.ts, register it in the converters map in src/lib/registry.ts, and add a matching tools/<format>-to-svg.test.ts anchors: `src/lib/detect.ts`, `src/lib/registry.ts`
+- **a new export/output format from the converted SVG** - add a function to src/lib/outputs.ts (mirroring svgToPng/svgToPdf) and wire a button + handler into the export row in src/App.vue anchors: `src/lib/outputs.ts`, `src/App.vue`
+- **a new conversion/pixel-regression test** - add a *.test.ts under tools/ following the resvg-render-and-pixel-compare pattern against a generated fixture; bun test picks it up automatically anchors: `tools/psd-pixel-regression.test.ts`
+- **a rule about what may ship in public/samples/** - extend the approved-samples list checked by tools/check-public-assets.ts, which the production build (`bun run build`) runs before bundling anchors: `tools/check-public-assets.ts`
+- **a new CI or deploy step** - add a step to the `test` job in .github/workflows/ci.yml; the `deploy` job (Cloudflare Pages via wrangler-action) runs only after `test` passes on a push to main, and is itself guarded so a missing Cloudflare token skips deploy with a loud CI warning rather than failing red anchors: `.github/workflows/ci.yml`
 
 ### Gaps and wants
 
@@ -93,4 +93,4 @@ _Read it with `python odin.py codex brief vectormojo` in the Odin clone._
 ---
 
 _Generated by `odin codex about --publish vectormojo` on 2026-09-16 from a Codex dossier stamped 2026-09-14. Regenerate after the product moves; `odin codex about` reports drift._
-<!-- odin:about GENERATED END sha=3780b1876bf7 -->
+<!-- odin:about GENERATED END sha=a6e34afb1eda -->
