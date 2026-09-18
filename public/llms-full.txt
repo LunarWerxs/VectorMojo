@@ -1,6 +1,6 @@
 # VectorMojo - full brief
 
-> Convert PSD, PSB, PDF, Illustrator AI, EPS, SVG, PNG, and JPEG design files into clean vector SVGs, entirely in your browser. No upload, no server. Version 0.1.0. MIT licensed.
+> Convert PSD, PSB, PDF, Illustrator AI, EPS, SVG, PNG, and JPEG design files into clean vector SVGs, entirely in your browser. No upload, no server. Version 1.0.0. MIT licensed.
 
 ## What it is
 

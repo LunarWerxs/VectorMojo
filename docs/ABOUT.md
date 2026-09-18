@@ -35,7 +35,7 @@ edit the dossier, not this block. Everything ABOVE the marker is yours.
 - **Live at:** https://vectormojo.lunarwerx.com
 - **Written in:** TypeScript (31 files), Vue (1 files)
 - **Built with:** Tailwind, TypeScript, Vite, Vue
-- **Package:** `vectormojo` 0.1.0
+- **Package:** `vectormojo` 1.0.0
 - **Entry points:** `scripts`, `site_root`
 - **Tests:** 9 test file(s)
 - **CI:** `ci.yml`
