@@ -19,7 +19,7 @@
     "probe": "bun run tools/probe-agpsd.ts"
   },
   "dependencies": {
-    "@cnct/connect": "^1.5.1",
+    "@cnct/connect": "^1.5.2",
     "@jspawn/ghostscript-wasm": "0.0.2",
     "ag-psd": "^31.0.2",
     "imagetracerjs": "1.2.6",
