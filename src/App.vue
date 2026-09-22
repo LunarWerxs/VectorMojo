@@ -59,10 +59,16 @@ const connectionsUser = ref<ConnectUser | null>(null)
 const connectionsBusy = ref(false)
 const connectionsError = ref('')
 const sampleError = ref('')
-const guestConversionCount = ref(readGuestConversionCount())
+// Starts at 0 and reads this browser's real count in onMounted: the build
+// prerenders this view without a browser (tools/prerender.ts), so the first
+// client render has to match that HTML before anything local is read.
+const guestConversionCount = ref(0)
 const pendingFiles = ref<File[]>([])
-const brandMarkUrl = `${import.meta.env.BASE_URL}vectormojo-mark.svg`
-const noticesUrl = `${import.meta.env.BASE_URL}THIRD_PARTY_NOTICES.txt`
+// Resolved against the page like the sample fetch below, not built from
+// BASE_URL: the prerender's server build turns the './' base into '/', which
+// would pin these links to the host root and break a subpath deploy.
+const brandMarkUrl = './vectormojo-mark.svg'
+const noticesUrl = './THIRD_PARTY_NOTICES.txt'
 const sourceUrl = 'https://github.com/LunarWerxs/vectormojo'
 const helpSeenKey = 'vectormojo:help-seen:v1'
 let seq = 0
@@ -150,6 +156,7 @@ async function trySampleFromHelp() {
 }
 
 onMounted(() => {
+  guestConversionCount.value = readGuestConversionCount()
   try {
     if (localStorage.getItem(helpSeenKey) !== 'yes') openHelp()
   } catch {
