@@ -3,7 +3,6 @@
 // vtracer) get lazy-loaded here as they land, so the initial bundle stays small.
 
 import type { Format } from './detect'
-import { psdToSvg } from './psd-to-svg'
 
 export interface ToSvgResult {
   svg: string
@@ -22,7 +21,10 @@ export type ToSvgConverter = (
 ) => Promise<ToSvgResult>
 
 const converters: Partial<Record<Format, ToSvgConverter>> = {
+  // Lazy like every other engine: ag-psd and its inflater were two thirds of
+  // the first-load bundle, and a visitor who never drops a PSD never needs them.
   psd: async (bytes) => {
+    const { psdToSvg } = await import('./psd-to-svg')
     const r = await psdToSvg(bytes)
     return {
       svg: r.svg,
