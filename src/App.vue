@@ -181,8 +181,11 @@ function applyResult(item: Item, result: ToSvgResult) {
 }
 
 async function addFiles(files: FileList | File[]) {
-  await ensureConnectionsSessionRestored()
+  // Copied BEFORE the await: a picked FileList is live, and onPick clears the
+  // input as soon as this returns its promise, so a copy taken after the await
+  // was empty and "click to choose one" converted nothing.
   const incoming = Array.from(files)
+  await ensureConnectionsSessionRestored()
   for (let index = 0; index < incoming.length; index += 1) {
     const file = incoming[index] as File
     if (
