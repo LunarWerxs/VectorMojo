@@ -168,6 +168,12 @@ The production build refuses to continue if anything other than the reviewed
 neutral PSD appears in `public/samples/`, even when that file is ignored by Git.
 Private scratch artwork belongs in the ignored `local-samples/` directory.
 
+### Deploying
+
+`bun run deploy` builds and uploads `dist/` to the `vectormojo` Cloudflare Pages project, the same
+way the other LunarWerx sites ship: from a machine signed in with `wrangler login`. GitHub CI only
+runs the tests and the build; it holds no Cloudflare token.
+
 ## Built with
 
 **Bun** · **Vue 3** · **Vite** · **Tailwind CSS 4** · **Connections** ·

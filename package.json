@@ -13,6 +13,7 @@
     "dev": "vite",
     "check:public": "bun run tools/check-public-assets.ts",
     "build": "bun run check:public && vue-tsc --noEmit && vite build && vite build --ssr src/entry-server.ts --outDir dist-ssr && bun run tools/prerender.ts && bun run tools/copy-license-assets.ts",
+    "deploy": "bun run build && CLOUDFLARE_ACCOUNT_ID=36d7c731fd0352ef08ea7e46d2d20793 bunx wrangler@4 pages deploy dist --project-name=vectormojo --branch=main",
     "preview": "vite preview",
     "test": "bun test",
     "generate:sample": "bun run tools/generate-sample.ts",
